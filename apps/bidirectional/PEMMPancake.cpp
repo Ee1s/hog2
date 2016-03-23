@@ -80,24 +80,24 @@ int PancakePDB::CountSmallerInRight(const PancakePuzzleState &s, int low, int hi
 	return count;
 }
 
-int PancakePDB::GetRank(const PancakePuzzleState &s)
+uint64_t PancakePDB::GetRank(const PancakePuzzleState &s)
 {
 	int size = s.puzzle.size();
-	int mul = Factorial(size);
-	int rank = 1;
-	int countRight;
+	uint64_t mul = 0;
+	uint64_t rank = 1;
+	uint64_t countRight;
 
 	for (int i = 0; i < size; i++)
 	{
 		mul = Factorial(size-1-i);
 
-		// count number of chars smaller than str[i]
-		// fron str[i+1] to str[len-1]
+		// count number of elementss smaller than puzzle[i]
+		// fron puzzle[i+1] to puzzle[size-1]
 		countRight = CountSmallerInRight(s, i, size - 1);
 
 		rank += countRight * mul;
 	}
-
+	//std::cout << "\npuzzle: " << s << " rank: " << rank << "\n";
 	return rank;
 }
 
@@ -119,13 +119,15 @@ void PancakePDB::GetStateFromHash(PancakePuzzleState &node, uint64_t hash)
 	std::vector<int> pz;
 	for (int i = 0; i < size; i++)
 		pz.push_back(i);
-	int countRight = 0;
+	uint64_t countRight = 0;
 	hash = hash - 1;
 	//std::cout << "\n get state from hash, hash:" << hash << "\n";
 	for (int i = 0; i < size; i++) 
 	{
+
 		countRight = hash / Factorial(size - 1 - i);
 		hash = hash%Factorial(size - 1 - i);
+		//printf("\ni %d, countRight %d", i, countRight);
 		node.puzzle[i] = pz[countRight];
 		pz.erase(pz.begin() + countRight);
 	}

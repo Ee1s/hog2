@@ -29,7 +29,7 @@ public:
 	static uint64_t GetStateHash(const PancakePuzzleState& s);
 	static void GetStateFromHash(PancakePuzzleState &node, uint64_t hash);
 	static int CountSmallerInRight(const PancakePuzzleState &s, int low, int high);
-	static int GetRank(const PancakePuzzleState &s);
+	static uint64_t GetRank(const PancakePuzzleState &s);
 	bool Load(const char *prefix);
 	void Save(const char *prefix);
 	bool Load(FILE *f);

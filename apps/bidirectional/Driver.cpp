@@ -106,15 +106,15 @@ int main(int argc, char* argv[])
 	{
 		//MMPancake::MM();
 		hprefix = argv[5];
-		PancakePuzzleState start(10);
-		PancakePuzzleState goal(10);
+		PancakePuzzleState start(13);
+		PancakePuzzleState goal(13);
 
 		Heuristic<PancakePuzzleState> forward;
 		Heuristic<PancakePuzzleState> reverse;
 		BuildHeuristics(3, start, goal, forward);
 		BuildHeuristics(3, goal, start, reverse);
 
-		PancakePuzzle puzzle(10);
+		PancakePuzzle puzzle(13);
 		PEMMPancake *searcher;
 		//searcher->FindAPath();
 		//for (int instance = 69; instance < 100; instance++)
@@ -445,7 +445,7 @@ void BuildHeuristics(RubiksState start, RubiksState goal, Heuristic<RubiksState>
 
 void BuildHeuristics(int count, PancakePuzzleState start, PancakePuzzleState goal, Heuristic<PancakePuzzleState> &result)
 {
-	PancakePuzzle pancake(10);
+	PancakePuzzle pancake(start.puzzle.size());
 	std::vector<int> pdb;
 	for (int x = 0; x < count; x++)
 		pdb.push_back(x);
