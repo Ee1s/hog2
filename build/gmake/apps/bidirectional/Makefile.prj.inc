@@ -71,3 +71,5 @@ SRC_CPP = \
 	apps/bidirectional/Driver.cpp \
 	apps/bidirectional/MMRubik.cpp \
 	apps/bidirectional/MM0Rubik.cpp \
+	apps/bidirectional/PEMMRubik.cpp \
+	apps/bidirectional/PEMMPancake.cpp 

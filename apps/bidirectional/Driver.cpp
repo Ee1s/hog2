@@ -38,6 +38,10 @@
 #include "RubiksCube.h"
 #include "MMRubik.h"
 #include "MM0Rubik.h"
+#include "PEMM.h"
+#include "PEMMRubik.h"
+#include "PEMMPancake.h"
+//#include "PEMMMNPuzzle.h"
 
 struct hash128
 {
@@ -81,6 +85,14 @@ void BFS();
 void GetKorfInstance(RubiksState &start, int which);
 void GetSuperFlip(RubiksState &start);
 void GetDepth20(RubiksState &start, int which);
+void BuildHeuristics(RubiksState start, RubiksState goal, Heuristic<RubiksState> &result);
+void BuildHeuristics(int count, PancakePuzzleState start, PancakePuzzleState goal, Heuristic<PancakePuzzleState> &result);
+//void BuildHeuristics(MNPuzzleState start, MNPuzzleState goal, Heuristic<MNPuzzleState>& result);
+void GetInstance(int which, PancakePuzzleState &s);
+
+char *hprefix;
+
+#define KORF97
 
 int main(int argc, char* argv[])
 {
@@ -93,6 +105,41 @@ int main(int argc, char* argv[])
 	else if (argc > 1 && strcmp(argv[1], "-pancake") == 0)
 	{
 		//MMPancake::MM();
+		hprefix = argv[5];
+		PancakePuzzleState start(10);
+		PancakePuzzleState goal(10);
+
+		Heuristic<PancakePuzzleState> forward;
+		Heuristic<PancakePuzzleState> reverse;
+		BuildHeuristics(3, start, goal, forward);
+		BuildHeuristics(3, goal, start, reverse);
+
+		PancakePuzzle puzzle(10);
+		PEMMPancake *searcher;
+		//searcher->FindAPath();
+		//for (int instance = 69; instance < 100; instance++)
+		//{
+		//	GetInstance(instance, start);
+		//	goal.Reset();
+		//	std::cout << "Start: " << start << std::endl;
+		//	std::cout << "Goal: " << goal << std::endl;
+		//	searcher = new PEMMPancake(start, goal, argv[3], argv[4], forward, reverse, &puzzle);
+		//	searcher->FindAPath();
+		//	delete searcher;
+		//}
+		start.Reset();
+		std::vector<PancakePuzzleAction> actions;
+		puzzle.GetActions(start, actions);
+		puzzle.ApplyAction(start, actions[0]);
+		puzzle.ApplyAction(start, actions[1]);
+		puzzle.ApplyAction(start, actions[2]);
+		puzzle.ApplyAction(start, actions[3]);
+		puzzle.ApplyAction(start, actions[4]);
+		goal.Reset();
+		std::cout << "Start: " << start << std::endl;
+		std::cout << "Goal: " << goal << std::endl;
+		searcher = new PEMMPancake(start, goal, argv[3], argv[4], forward, reverse, &puzzle);
+		searcher->FindAPath();
 	}
 	else if (strcmp(argv[1], "-pida") == 0)
 	{
@@ -159,41 +206,52 @@ int main(int argc, char* argv[])
 		RubiksCube c;
 		b.Reset();
 		// solution depth 12
-//		c.ApplyAction(a, 0*3);
-//		c.ApplyAction(a, 1*3);
-//		c.ApplyAction(a, 2*3);
-//		c.ApplyAction(a, 3*3);
-//		c.ApplyAction(a, 4*3);
-//		c.ApplyAction(a, 5*3);
-//		c.ApplyAction(a, 4*3);
-//		c.ApplyAction(a, 3*3);
-//		c.ApplyAction(a, 2*3);
-//		c.ApplyAction(a, 1*3);
-//		c.ApplyAction(a, 0*3);
-//		c.ApplyAction(a, 1*3);
-//		c.ApplyAction(a, 2*3);
-//		c.ApplyAction(a, 3*3);
-//		c.ApplyAction(a, 4*3);
+		c.ApplyAction(a, 0*3);
+		c.ApplyAction(a, 1*3);
+		c.ApplyAction(a, 2*3);
+		c.ApplyAction(a, 3*3);
+		c.ApplyAction(a, 4*3);
+		c.ApplyAction(a, 5*3);
+		c.ApplyAction(a, 4*3);
+		c.ApplyAction(a, 3*3);
+		c.ApplyAction(a, 2*3);
+		c.ApplyAction(a, 1*3);
+		c.ApplyAction(a, 0*3);
+		c.ApplyAction(a, 1*3);
+		c.ApplyAction(a, 2*3);
+		c.ApplyAction(a, 3*3);
+		c.ApplyAction(a, 4*3);
 
 		int which = 0;
-		which = atoi(argv[2]);
-		if (which < 10)
-			GetKorfInstance(a, which);
-		else if (which == 19)
-		{
-			GetSuperFlip(a);
-			// Any action will reduce this to 19 moves to solve
-			c.ApplyAction(a, 0);
-		}
-		else if (which == 20)
-		{
-			GetSuperFlip(a);
-		}
-		else if (which > 20)
-		{
-			GetDepth20(a, which-21);
-		}
-		MM::MM(a, b, argv[3], argv[4], argv[5]);
+		//which = atoi(argv[2]);
+		//if (which < 10)
+		//	GetKorfInstance(a, which);
+		//else if (which == 19)
+		//{
+		//	GetSuperFlip(a);
+		//	// Any action will reduce this to 19 moves to solve
+		//	c.ApplyAction(a, 0);
+		//}
+		//else if (which == 20)
+		//{
+		//	GetSuperFlip(a);
+		//}
+		//else if (which > 20)
+		//{
+		//	GetDepth20(a, which-21);
+		//}
+		hprefix = argv[5];
+		Heuristic<RubiksState> forward;
+		Heuristic<RubiksState> reverse;
+		BuildHeuristics(a, b, forward);
+		BuildHeuristics(b, a, reverse);
+
+		RubiksCube* cube = new RubiksCube();
+		PEMMRubik *searcher = new PEMMRubik(a, b, argv[3], argv[4], forward, reverse, cube);
+
+		searcher->FindAPath();
+
+		//MM::MM(a, b, argv[3], argv[4], argv[5]);
 	}
 	else if (argc > 3 && strcmp(argv[1], "-grid") == 0)
 	{
@@ -203,12 +261,533 @@ int main(int argc, char* argv[])
 	{
 		TestPruning(atoi(argv[2]), atoi(argv[3]));
 	}
+	//else if (strcmp(argv[1], "-mnpuzzle") == 0)
+	//{
+	//	hprefix = argv[5];
+	//	MNPuzzleState start(3,3);
+	//	MNPuzzleState goal(3, 3);
+
+	//	Heuristic<MNPuzzleState> forward;
+	//	Heuristic<MNPuzzleState> reverse;
+	//	BuildHeuristics(start, goal, forward);
+	//	BuildHeuristics(goal, start, reverse);
+
+	//	MNPuzzle puzzle(3, 3);
+	//	PEMMMNPuzzle *searcher;
+	//	start.Reset();
+	//	std::vector<slideDir> actions;
+	//	puzzle.GetActions(start, actions);
+	//	puzzle.ApplyAction(start, actions[0]);
+	//	puzzle.ApplyAction(start, actions[1]);
+	//	puzzle.ApplyAction(start, actions[2]);
+	//	puzzle.ApplyAction(start, actions[0]);
+	//	puzzle.ApplyAction(start, actions[3]);
+	//	goal.Reset();
+	//	std::cout << "Start: " << start << std::endl;
+	//	std::cout << "Goal: " << goal << std::endl;
+	//	searcher = new PEMMMNPuzzle(start, goal, argv[3], argv[4], forward, reverse, &puzzle);
+	//	searcher->FindAPath();
+	//}
 	else {
 		InstallHandlers();
 		RunHOGGUI(argc, argv);
 	}
 }
 
+
+void BuildHeuristics(RubiksState start, RubiksState goal, Heuristic<RubiksState> &result)
+{
+	RubiksCube cube;
+	std::vector<int> blank;
+#ifdef ZERO
+	ZeroHeuristic<RubiksState> *zero = new ZeroHeuristic<RubiksState>();
+	result.lookups.push_back({ kLeafNode, 0, 0 });
+	result.heuristics.push_back(zero);
+#endif
+
+#ifdef TINY
+	std::vector<int> edges1 = { 1, 3, 8, 9 }; // first 4
+	std::vector<int> edges2 = { 0, 2, 4, 5 }; // first 4
+	std::vector<int> corners = { 0, 1, 2, 3 }; // first 4
+	RubikPDB *pdb1 = new RubikPDB(&cube, goal, edges1, blank);
+	RubikPDB *pdb2 = new RubikPDB(&cube, goal, edges2, blank);
+	RubikPDB *pdb3 = new RubikPDB(&cube, goal, blank, corners);
+	if (!pdb1->Load(hprefix))
+	{
+		pdb1->BuildPDB(goal, std::thread::hardware_concurrency());
+		pdb1->Save(hprefix);
+	}
+	if (!pdb2->Load(hprefix))
+	{
+		pdb2->BuildPDB(goal, std::thread::hardware_concurrency());
+		pdb2->Save(hprefix);
+	}
+	if (!pdb3->Load(hprefix))
+	{
+		pdb3->BuildPDB(goal, std::thread::hardware_concurrency());
+		pdb3->Save(hprefix);
+	}
+	result.lookups.push_back({ kMaxNode, 1, 3 });
+	result.lookups.push_back({ kLeafNode, 0, 0 });
+	result.lookups.push_back({ kLeafNode, 1, 0 });
+	result.lookups.push_back({ kLeafNode, 2, 0 });
+	result.heuristics.push_back(pdb1);
+	result.heuristics.push_back(pdb2);
+	result.heuristics.push_back(pdb3);
+#endif
+
+
+#ifdef SMALL
+	std::vector<int> edges1 = { 0, 1, 2, 4, 6 };
+	std::vector<int> edges2 = { 3, 5 };
+	std::vector<int> edges3 = { 7, 8, 9, 10, 11 };
+	std::vector<int> corners1 = { 0, 1, 2, 3, 4, 5 };
+	std::vector<int> corners2 = { 2, 3, 4, 5, 6, 7 };
+	RubikPDB *pdb1 = new RubikPDB(&cube, goal, edges1, blank);
+	RubikPDB *pdb2 = new RubikPDB(&cube, goal, edges2, blank);
+	RubikPDB *pdb3 = new RubikPDB(&cube, goal, edges3, blank);
+	RubikPDB *pdb4 = new RubikPDB(&cube, goal, blank, corners1);
+	RubikPDB *pdb5 = new RubikPDB(&cube, goal, blank, corners2);
+	pdb1->BuildPDB(goal, std::thread::hardware_concurrency());
+	pdb2->BuildPDB(goal, std::thread::hardware_concurrency());
+	pdb3->BuildPDB(goal, std::thread::hardware_concurrency());
+	pdb4->BuildPDB(goal, std::thread::hardware_concurrency());
+	pdb5->BuildPDB(goal, std::thread::hardware_concurrency());
+	result.lookups.push_back({ kMaxNode, 1, 5 });
+	result.lookups.push_back({ kLeafNode, 0, 0 });
+	result.lookups.push_back({ kLeafNode, 1, 0 });
+	result.lookups.push_back({ kLeafNode, 2, 0 });
+	result.lookups.push_back({ kLeafNode, 3, 0 });
+	result.lookups.push_back({ kLeafNode, 4, 0 });
+	result.heuristics.push_back(pdb1);
+	result.heuristics.push_back(pdb2);
+	result.heuristics.push_back(pdb3);
+	result.heuristics.push_back(pdb4);
+	result.heuristics.push_back(pdb5);
+#endif
+
+#ifdef KORF97
+	std::vector<int> edges1 = { 1, 3, 8, 9, 10, 11 };
+	std::vector<int> edges2 = { 0, 2, 4, 5, 6, 7 };
+	std::vector<int> corners = { 0, 1, 2, 3, 4, 5, 6, 7 };
+	RubikPDB *pdb1 = new RubikPDB(&cube, goal, edges1, blank);
+	RubikPDB *pdb2 = new RubikPDB(&cube, goal, edges2, blank);
+	RubikPDB *pdb3 = new RubikPDB(&cube, goal, blank, corners);
+
+	//	assert(!"File names are getting corrupted here. Perhaps by the abstraction of the goal state");
+	//	assert(!"Need to abstract the goal state immediately when creating the pdb instead of only when I build the pdb");
+	if (!pdb1->Load(hprefix))
+	{
+		pdb1->BuildPDB(goal, std::thread::hardware_concurrency());
+		pdb1->Save(hprefix);
+	}
+	else {
+		printf("Loaded previous heuristic\n");
+	}
+	if (!pdb2->Load(hprefix))
+	{
+		pdb2->BuildPDB(goal, std::thread::hardware_concurrency());
+		pdb2->Save(hprefix);
+	}
+	else {
+		printf("Loaded previous heuristic\n");
+	}
+	if (!pdb3->Load(hprefix))
+	{
+		pdb3->BuildPDB(goal, std::thread::hardware_concurrency());
+		pdb3->Save(hprefix);
+	}
+	else {
+		printf("Loaded previous heuristic\n");
+	}
+	result.lookups.push_back({ kMaxNode, 1, 3 });
+	result.lookups.push_back({ kLeafNode, 0, 0 });
+	result.lookups.push_back({ kLeafNode, 1, 0 });
+	result.lookups.push_back({ kLeafNode, 2, 0 });
+	result.heuristics.push_back(pdb1);
+	result.heuristics.push_back(pdb2);
+	result.heuristics.push_back(pdb3);
+#endif
+
+#ifdef MASSIVE
+	std::vector<int> edges1 = { 0, 1, 2, 3, 4, 5, 6, 7 };
+	std::vector<int> edges2 = { 1, 3, 5, 7, 8, 9, 10, 11 };
+	std::vector<int> corners = { 0, 1, 2, 3, 4, 5, 6, 7 }; // first 4
+	RubikPDB *pdb1 = new RubikPDB(&cube, goal, edges1, blank);
+	RubikPDB *pdb2 = new RubikPDB(&cube, goal, edges2, blank);
+	RubikPDB *pdb3 = new RubikPDB(&cube, goal, blank, corners);
+	if (!pdb1->Load(hprefix))
+	{
+		pdb1->BuildPDB(goal, std::thread::hardware_concurrency());
+		pdb1->Save(hprefix);
+	}
+	if (!pdb2->Load(hprefix))
+	{
+		pdb2->BuildPDB(goal, std::thread::hardware_concurrency());
+		pdb2->Save(hprefix);
+	}
+	if (!pdb3->Load(hprefix))
+	{
+		pdb3->BuildPDB(goal, std::thread::hardware_concurrency());
+		pdb3->Save(hprefix);
+	}
+	result.lookups.push_back({ kMaxNode, 1, 3 });
+	result.lookups.push_back({ kLeafNode, 0, 0 });
+	result.lookups.push_back({ kLeafNode, 1, 0 });
+	result.lookups.push_back({ kLeafNode, 2, 0 });
+	result.heuristics.push_back(pdb1);
+	result.heuristics.push_back(pdb2);
+	result.heuristics.push_back(pdb3);
+#endif
+
+}
+
+
+void BuildHeuristics(int count, PancakePuzzleState start, PancakePuzzleState goal, Heuristic<PancakePuzzleState> &result)
+{
+	PancakePuzzle pancake(10);
+	std::vector<int> pdb;
+	for (int x = 0; x < count; x++)
+		pdb.push_back(x);
+
+	
+	//PermutationPDB<PancakePuzzleState, PancakePuzzleAction, PancakePuzzle> *pdb1;
+	//pdb1 = new PermutationPDB<PancakePuzzleState, PancakePuzzleAction, PancakePuzzle>(&pancake, goal, pdb);
+	////pdb1->BuildPDB(goal, 0, std::thread::hardware_concurrency());
+	PancakePDB* pdb1;
+	pdb1 = new PancakePDB(&pancake, goal, pdb);
+	pdb1->BuildPDB(goal,std::thread::hardware_concurrency());
+	//if (!pdb1->Load(hprefix))
+	//{
+	//	pdb1->BuildPDB(goal, std::thread::hardware_concurrency());
+	//	pdb1->Save(hprefix);
+	//}
+	result.lookups.push_back({ kLeafNode, 0, 0 });
+	result.heuristics.push_back(pdb1);
+	//pdb3->Save(hprefix);
+}
+
+//void BuildHeuristics(MNPuzzleState start, MNPuzzleState goal, Heuristic<MNPuzzleState>& result)
+//{
+//}
+
+void GetInstance(int which, PancakePuzzleState &s)
+{
+	int states[309][10] =
+	{ { 0, 1, 2, 3, 4, 5, 6, 7, 9, 8 },
+	{ 0, 1, 2, 3, 4, 5, 6, 9, 8, 7 },
+	{ 0, 1, 2, 3, 4, 5, 9, 8, 7, 6 },
+	{ 0, 1, 2, 3, 4, 9, 8, 7, 6, 5 },
+	{ 0, 1, 2, 3, 9, 8, 7, 6, 5, 4 },
+	{ 0, 1, 2, 9, 8, 7, 6, 5, 4, 3 },
+	{ 0, 1, 9, 8, 7, 6, 5, 4, 3, 2 },
+	{ 0, 9, 8, 7, 6, 5, 4, 3, 2, 1 },
+	{ 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 },
+	{ 0, 1, 2, 3, 4, 5, 6, 8, 9, 7 },
+	{ 0, 1, 2, 3, 4, 5, 8, 9, 7, 6 },
+	{ 0, 1, 2, 3, 4, 8, 9, 7, 6, 5 },
+	{ 0, 1, 2, 3, 8, 9, 7, 6, 5, 4 },
+	{ 0, 1, 2, 8, 9, 7, 6, 5, 4, 3 },
+	{ 0, 1, 8, 9, 7, 6, 5, 4, 3, 2 },
+	{ 0, 8, 9, 7, 6, 5, 4, 3, 2, 1 },
+	{ 8, 9, 7, 6, 5, 4, 3, 2, 1, 0 },
+	{ 0, 1, 2, 3, 4, 5, 6, 9, 7, 8 },
+	{ 0, 1, 2, 3, 4, 5, 7, 8, 9, 6 },
+	{ 0, 1, 2, 3, 4, 7, 8, 9, 6, 5 },
+	{ 0, 1, 2, 3, 7, 8, 9, 6, 5, 4 },
+	{ 0, 1, 2, 7, 8, 9, 6, 5, 4, 3 },
+	{ 0, 1, 7, 8, 9, 6, 5, 4, 3, 2 },
+	{ 0, 7, 8, 9, 6, 5, 4, 3, 2, 1 },
+	{ 7, 8, 9, 6, 5, 4, 3, 2, 1, 0 },
+	{ 0, 1, 2, 3, 4, 5, 9, 8, 6, 7 },
+	{ 0, 1, 2, 3, 4, 5, 9, 6, 7, 8 },
+	{ 0, 1, 2, 3, 4, 6, 7, 8, 9, 5 },
+	{ 0, 1, 2, 3, 6, 7, 8, 9, 5, 4 },
+	{ 0, 1, 2, 6, 7, 8, 9, 5, 4, 3 },
+	{ 0, 1, 6, 7, 8, 9, 5, 4, 3, 2 },
+	{ 0, 6, 7, 8, 9, 5, 4, 3, 2, 1 },
+	{ 6, 7, 8, 9, 5, 4, 3, 2, 1, 0 },
+	{ 0, 1, 2, 3, 4, 9, 8, 7, 5, 6 },
+	{ 0, 1, 2, 3, 4, 9, 8, 5, 6, 7 },
+	{ 0, 1, 2, 3, 4, 9, 5, 6, 7, 8 },
+	{ 0, 1, 2, 3, 5, 6, 7, 8, 9, 4 },
+	{ 0, 1, 2, 5, 6, 7, 8, 9, 4, 3 },
+	{ 0, 1, 5, 6, 7, 8, 9, 4, 3, 2 },
+	{ 0, 1, 2, 3, 4, 5, 6, 8, 7, 9 },
+	{ 0, 1, 2, 3, 4, 5, 7, 9, 8, 6 },
+	{ 0, 1, 2, 3, 4, 7, 9, 8, 6, 5 },
+	{ 0, 1, 2, 3, 7, 9, 8, 6, 5, 4 },
+	{ 0, 1, 2, 7, 9, 8, 6, 5, 4, 3 },
+	{ 0, 1, 7, 9, 8, 6, 5, 4, 3, 2 },
+	{ 0, 7, 9, 8, 6, 5, 4, 3, 2, 1 },
+	{ 7, 9, 8, 6, 5, 4, 3, 2, 1, 0 },
+	{ 0, 1, 2, 3, 4, 5, 8, 9, 6, 7 },
+	{ 0, 1, 2, 3, 4, 5, 8, 6, 7, 9 },
+	{ 0, 1, 2, 3, 4, 6, 7, 9, 8, 5 },
+	{ 0, 1, 2, 3, 6, 7, 9, 8, 5, 4 },
+	{ 0, 1, 2, 6, 7, 9, 8, 5, 4, 3 },
+	{ 0, 1, 6, 7, 9, 8, 5, 4, 3, 2 },
+	{ 0, 6, 7, 9, 8, 5, 4, 3, 2, 1 },
+	{ 6, 7, 9, 8, 5, 4, 3, 2, 1, 0 },
+	{ 0, 1, 2, 3, 4, 8, 9, 7, 5, 6 },
+	{ 0, 1, 2, 3, 4, 8, 9, 5, 6, 7 },
+	{ 0, 1, 2, 3, 4, 8, 5, 6, 7, 9 },
+	{ 0, 1, 2, 3, 5, 6, 7, 9, 8, 4 },
+	{ 0, 1, 2, 5, 6, 7, 9, 8, 4, 3 },
+	{ 0, 1, 5, 6, 7, 9, 8, 4, 3, 2 },
+	{ 0, 5, 6, 7, 9, 8, 4, 3, 2, 1 },
+	{ 5, 6, 7, 9, 8, 4, 3, 2, 1, 0 },
+	{ 0, 1, 2, 3, 8, 9, 7, 6, 4, 5 },
+	{ 0, 1, 2, 3, 8, 9, 7, 4, 5, 6 },
+	{ 0, 1, 2, 3, 8, 9, 4, 5, 6, 7 },
+	{ 0, 1, 2, 3, 8, 4, 5, 6, 7, 9 },
+	{ 0, 1, 2, 4, 5, 6, 7, 9, 8, 3 },
+	{ 0, 1, 4, 5, 6, 7, 9, 8, 3, 2 },
+	{ 0, 1, 2, 3, 4, 5, 9, 7, 8, 6 },
+	{ 0, 1, 2, 3, 4, 9, 7, 8, 6, 5 },
+	{ 0, 1, 2, 3, 9, 7, 8, 6, 5, 4 },
+	{ 0, 1, 2, 9, 7, 8, 6, 5, 4, 3 },
+	{ 0, 1, 9, 7, 8, 6, 5, 4, 3, 2 },
+	{ 0, 9, 7, 8, 6, 5, 4, 3, 2, 1 },
+	{ 9, 7, 8, 6, 5, 4, 3, 2, 1, 0 },
+	{ 0, 1, 2, 3, 4, 5, 7, 9, 6, 8 },
+	{ 0, 1, 2, 3, 4, 6, 8, 9, 7, 5 },
+	{ 0, 1, 2, 3, 6, 8, 9, 7, 5, 4 },
+	{ 0, 1, 2, 6, 8, 9, 7, 5, 4, 3 },
+	{ 0, 1, 6, 8, 9, 7, 5, 4, 3, 2 },
+	{ 0, 6, 8, 9, 7, 5, 4, 3, 2, 1 },
+	{ 6, 8, 9, 7, 5, 4, 3, 2, 1, 0 },
+	{ 0, 1, 2, 3, 4, 7, 9, 8, 5, 6 },
+	{ 0, 1, 2, 3, 4, 7, 9, 5, 6, 8 },
+	{ 0, 1, 2, 3, 4, 7, 5, 6, 8, 9 },
+	{ 0, 1, 2, 3, 5, 6, 8, 9, 7, 4 },
+	{ 0, 1, 2, 5, 6, 8, 9, 7, 4, 3 },
+	{ 0, 1, 5, 6, 8, 9, 7, 4, 3, 2 },
+	{ 0, 5, 6, 8, 9, 7, 4, 3, 2, 1 },
+	{ 5, 6, 8, 9, 7, 4, 3, 2, 1, 0 },
+	{ 0, 1, 2, 3, 7, 9, 8, 6, 4, 5 },
+	{ 0, 1, 2, 3, 7, 9, 8, 4, 5, 6 },
+	{ 0, 1, 2, 3, 7, 9, 4, 5, 6, 8 },
+	{ 0, 1, 2, 3, 7, 4, 5, 6, 8, 9 },
+	{ 0, 1, 2, 4, 5, 6, 8, 9, 7, 3 },
+	{ 0, 1, 4, 5, 6, 8, 9, 7, 3, 2 },
+	{ 0, 4, 5, 6, 8, 9, 7, 3, 2, 1 },
+	{ 4, 5, 6, 8, 9, 7, 3, 2, 1, 0 },
+	{ 0, 1, 2, 3, 4, 6, 8, 7, 9, 5 },
+	{ 0, 1, 2, 3, 6, 8, 7, 9, 5, 4 },
+	{ 0, 1, 2, 6, 8, 7, 9, 5, 4, 3 },
+	{ 0, 1, 6, 8, 7, 9, 5, 4, 3, 2 },
+	{ 0, 6, 8, 7, 9, 5, 4, 3, 2, 1 },
+	{ 6, 8, 7, 9, 5, 4, 3, 2, 1, 0 },
+	{ 0, 1, 2, 3, 5, 6, 8, 7, 9, 4 },
+	{ 0, 1, 2, 5, 6, 8, 7, 9, 4, 3 },
+	{ 0, 1, 5, 6, 8, 7, 9, 4, 3, 2 },
+	{ 0, 5, 6, 8, 7, 9, 4, 3, 2, 1 },
+	{ 5, 6, 8, 7, 9, 4, 3, 2, 1, 0 },
+	{ 0, 1, 2, 3, 9, 7, 8, 6, 4, 5 },
+	{ 0, 1, 2, 4, 5, 6, 8, 7, 9, 3 },
+	{ 0, 1, 4, 5, 6, 8, 7, 9, 3, 2 },
+	{ 0, 4, 5, 6, 8, 7, 9, 3, 2, 1 },
+	{ 4, 5, 6, 8, 7, 9, 3, 2, 1, 0 },
+	{ 0, 1, 2, 9, 7, 8, 6, 5, 3, 4 },
+	{ 0, 1, 2, 9, 7, 8, 6, 3, 4, 5 },
+	{ 0, 1, 3, 4, 5, 6, 8, 7, 9, 2 },
+	{ 0, 3, 4, 5, 6, 8, 7, 9, 2, 1 },
+	{ 3, 4, 5, 6, 8, 7, 9, 2, 1, 0 },
+	{ 0, 1, 9, 7, 8, 6, 5, 4, 2, 3 },
+	{ 0, 1, 9, 7, 8, 6, 5, 2, 3, 4 },
+	{ 0, 1, 9, 7, 8, 6, 2, 3, 4, 5 },
+	{ 0, 2, 3, 4, 5, 6, 8, 7, 9, 1 },
+	{ 2, 3, 4, 5, 6, 8, 7, 9, 1, 0 },
+	{ 0, 9, 7, 8, 6, 5, 4, 3, 1, 2 },
+	{ 0, 9, 7, 8, 6, 5, 4, 1, 2, 3 },
+	{ 0, 9, 7, 8, 6, 5, 1, 2, 3, 4 },
+	{ 0, 9, 7, 8, 6, 1, 2, 3, 4, 5 },
+	{ 0, 1, 2, 3, 5, 9, 7, 8, 6, 4 },
+	{ 0, 1, 2, 5, 9, 7, 8, 6, 4, 3 },
+	{ 0, 1, 5, 9, 7, 8, 6, 4, 3, 2 },
+	{ 0, 5, 9, 7, 8, 6, 4, 3, 2, 1 },
+	{ 5, 9, 7, 8, 6, 4, 3, 2, 1, 0 },
+	{ 0, 1, 2, 3, 6, 8, 7, 9, 4, 5 },
+	{ 0, 1, 2, 4, 5, 9, 7, 8, 6, 3 },
+	{ 0, 1, 4, 5, 9, 7, 8, 6, 3, 2 },
+	{ 0, 4, 5, 9, 7, 8, 6, 3, 2, 1 },
+	{ 4, 5, 9, 7, 8, 6, 3, 2, 1, 0 },
+	{ 0, 1, 2, 6, 8, 7, 9, 5, 3, 4 },
+	{ 0, 1, 2, 6, 8, 7, 9, 3, 4, 5 },
+	{ 0, 1, 3, 4, 5, 9, 7, 8, 6, 2 },
+	{ 0, 3, 4, 5, 9, 7, 8, 6, 2, 1 },
+	{ 3, 4, 5, 9, 7, 8, 6, 2, 1, 0 },
+	{ 0, 1, 6, 8, 7, 9, 5, 4, 2, 3 },
+	{ 0, 1, 6, 8, 7, 9, 5, 2, 3, 4 },
+	{ 0, 1, 6, 8, 7, 9, 2, 3, 4, 5 },
+	{ 0, 2, 3, 4, 5, 9, 7, 8, 6, 1 },
+	{ 2, 3, 4, 5, 9, 7, 8, 6, 1, 0 },
+	{ 0, 6, 8, 7, 9, 5, 4, 3, 1, 2 },
+	{ 0, 6, 8, 7, 9, 5, 4, 1, 2, 3 },
+	{ 0, 6, 8, 7, 9, 5, 1, 2, 3, 4 },
+	{ 0, 6, 8, 7, 9, 1, 2, 3, 4, 5 },
+	{ 1, 2, 3, 4, 5, 9, 7, 8, 6, 0 },
+	{ 6, 8, 7, 9, 5, 4, 3, 2, 0, 1 },
+	{ 6, 8, 7, 9, 5, 4, 3, 0, 1, 2 },
+	{ 6, 8, 7, 9, 5, 4, 0, 1, 2, 3 },
+	{ 6, 8, 7, 9, 5, 0, 1, 2, 3, 4 },
+	{ 6, 8, 7, 9, 0, 1, 2, 3, 4, 5 },
+	{ 0, 1, 2, 4, 6, 8, 7, 9, 5, 3 },
+	{ 0, 1, 4, 6, 8, 7, 9, 5, 3, 2 },
+	{ 0, 4, 6, 8, 7, 9, 5, 3, 2, 1 },
+	{ 4, 6, 8, 7, 9, 5, 3, 2, 1, 0 },
+	{ 0, 1, 2, 5, 9, 7, 8, 6, 3, 4 },
+	{ 0, 1, 2, 5, 3, 4, 6, 8, 7, 9 },
+	{ 0, 1, 3, 4, 6, 8, 7, 9, 5, 2 },
+	{ 0, 3, 4, 6, 8, 7, 9, 5, 2, 1 },
+	{ 3, 4, 6, 8, 7, 9, 5, 2, 1, 0 },
+	{ 0, 1, 5, 9, 7, 8, 6, 4, 2, 3 },
+	{ 0, 1, 5, 9, 7, 8, 6, 2, 3, 4 },
+	{ 0, 1, 5, 2, 3, 4, 6, 8, 7, 9 },
+	{ 0, 2, 3, 4, 6, 8, 7, 9, 5, 1 },
+	{ 2, 3, 4, 6, 8, 7, 9, 5, 1, 0 },
+	{ 0, 5, 9, 7, 8, 6, 4, 3, 1, 2 },
+	{ 0, 5, 9, 7, 8, 6, 4, 1, 2, 3 },
+	{ 0, 5, 9, 7, 8, 6, 1, 2, 3, 4 },
+	{ 0, 5, 1, 2, 3, 4, 6, 8, 7, 9 },
+	{ 1, 2, 3, 4, 6, 8, 7, 9, 5, 0 },
+	{ 5, 9, 7, 8, 6, 4, 3, 2, 0, 1 },
+	{ 5, 9, 7, 8, 6, 4, 3, 0, 1, 2 },
+	{ 5, 9, 7, 8, 6, 4, 0, 1, 2, 3 },
+	{ 5, 9, 7, 8, 6, 0, 1, 2, 3, 4 },
+	{ 5, 0, 1, 2, 3, 4, 6, 8, 7, 9 },
+	{ 0, 1, 2, 5, 4, 9, 7, 8, 6, 3 },
+	{ 0, 1, 5, 4, 9, 7, 8, 6, 3, 2 },
+	{ 0, 5, 4, 9, 7, 8, 6, 3, 2, 1 },
+	{ 5, 4, 9, 7, 8, 6, 3, 2, 1, 0 },
+	{ 0, 1, 2, 4, 5, 3, 6, 8, 7, 9 },
+	{ 0, 1, 2, 4, 3, 6, 8, 7, 9, 5 },
+	{ 0, 1, 3, 5, 9, 7, 8, 6, 4, 2 },
+	{ 0, 3, 5, 9, 7, 8, 6, 4, 2, 1 },
+	{ 3, 5, 9, 7, 8, 6, 4, 2, 1, 0 },
+	{ 0, 1, 4, 6, 8, 7, 9, 5, 2, 3 },
+	{ 0, 1, 4, 6, 8, 7, 9, 2, 3, 5 },
+	{ 0, 1, 4, 2, 3, 5, 9, 7, 8, 6 },
+	{ 0, 2, 3, 5, 9, 7, 8, 6, 4, 1 },
+	{ 2, 3, 5, 9, 7, 8, 6, 4, 1, 0 },
+	{ 0, 4, 6, 8, 7, 9, 5, 3, 1, 2 },
+	{ 0, 4, 6, 8, 7, 9, 5, 1, 2, 3 },
+	{ 0, 4, 6, 8, 7, 9, 1, 2, 3, 5 },
+	{ 0, 4, 1, 2, 3, 5, 9, 7, 8, 6 },
+	{ 1, 2, 3, 5, 9, 7, 8, 6, 4, 0 },
+	{ 4, 6, 8, 7, 9, 5, 3, 2, 0, 1 },
+	{ 4, 6, 8, 7, 9, 5, 3, 0, 1, 2 },
+	{ 4, 6, 8, 7, 9, 5, 0, 1, 2, 3 },
+	{ 4, 6, 8, 7, 9, 0, 1, 2, 3, 5 },
+	{ 4, 0, 1, 2, 3, 5, 9, 7, 8, 6 },
+	{ 0, 1, 4, 3, 6, 8, 7, 9, 5, 2 },
+	{ 0, 4, 3, 6, 8, 7, 9, 5, 2, 1 },
+	{ 4, 3, 6, 8, 7, 9, 5, 2, 1, 0 },
+	{ 0, 9, 7, 8, 6, 4, 3, 5, 2, 1 },
+	{ 9, 7, 8, 6, 4, 3, 5, 2, 1, 0 },
+	{ 0, 1, 3, 4, 2, 5, 9, 7, 8, 6 },
+	{ 0, 1, 3, 2, 5, 9, 7, 8, 6, 4 },
+	{ 0, 2, 5, 9, 7, 8, 6, 4, 3, 1 },
+	{ 2, 5, 9, 7, 8, 6, 4, 3, 1, 0 },
+	{ 0, 3, 4, 6, 8, 7, 9, 5, 1, 2 },
+	{ 0, 3, 4, 6, 8, 7, 9, 1, 2, 5 },
+	{ 0, 3, 4, 1, 2, 5, 9, 7, 8, 6 },
+	{ 0, 1, 3, 5, 2, 4, 6, 8, 7, 9 },
+	{ 0, 2, 4, 6, 8, 7, 9, 5, 3, 1 },
+	{ 2, 4, 6, 8, 7, 9, 5, 3, 1, 0 },
+	{ 0, 3, 5, 9, 7, 8, 6, 4, 1, 2 },
+	{ 0, 3, 5, 9, 7, 8, 6, 1, 2, 4 },
+	{ 0, 3, 5, 1, 2, 4, 6, 8, 7, 9 },
+	{ 0, 3, 1, 2, 4, 6, 8, 7, 9, 5 },
+	{ 1, 2, 4, 6, 8, 7, 9, 5, 3, 0 },
+	{ 3, 5, 9, 7, 8, 6, 4, 2, 0, 1 },
+	{ 3, 5, 9, 7, 8, 6, 4, 0, 1, 2 },
+	{ 3, 5, 9, 7, 8, 6, 0, 1, 2, 4 },
+	{ 3, 5, 0, 1, 2, 4, 6, 8, 7, 9 },
+	{ 3, 0, 1, 2, 4, 6, 8, 7, 9, 5 },
+	{ 0, 3, 2, 5, 9, 7, 8, 6, 4, 1 },
+	{ 3, 2, 5, 9, 7, 8, 6, 4, 1, 0 },
+	{ 0, 5, 3, 2, 9, 7, 8, 6, 4, 1 },
+	{ 5, 3, 2, 9, 7, 8, 6, 4, 1, 0 },
+	{ 6, 8, 7, 9, 5, 3, 2, 4, 1, 0 },
+	{ 0, 2, 3, 5, 1, 4, 6, 8, 7, 9 },
+	{ 0, 2, 3, 1, 4, 6, 8, 7, 9, 5 },
+	{ 0, 2, 1, 4, 6, 8, 7, 9, 5, 3 },
+	{ 1, 4, 6, 8, 7, 9, 5, 3, 2, 0 },
+	{ 2, 3, 5, 9, 7, 8, 6, 4, 0, 1 },
+	{ 2, 3, 5, 9, 7, 8, 6, 0, 1, 4 },
+	{ 2, 3, 5, 0, 1, 4, 6, 8, 7, 9 },
+	{ 2, 3, 0, 1, 4, 6, 8, 7, 9, 5 },
+	{ 2, 0, 1, 4, 6, 8, 7, 9, 5, 3 },
+	{ 0, 4, 6, 8, 7, 9, 5, 2, 1, 3 },
+	{ 0, 4, 2, 1, 3, 5, 9, 7, 8, 6 },
+	{ 0, 2, 1, 3, 5, 9, 7, 8, 6, 4 },
+	{ 9, 7, 8, 6, 4, 2, 5, 3, 1, 0 },
+	{ 0, 2, 4, 1, 3, 5, 9, 7, 8, 6 },
+	{ 1, 3, 5, 9, 7, 8, 6, 4, 2, 0 },
+	{ 2, 4, 6, 8, 7, 9, 5, 3, 0, 1 },
+	{ 2, 4, 6, 8, 7, 9, 5, 0, 1, 3 },
+	{ 2, 4, 6, 8, 7, 9, 0, 1, 3, 5 },
+	{ 2, 4, 0, 1, 3, 5, 9, 7, 8, 6 },
+	{ 2, 0, 1, 3, 5, 9, 7, 8, 6, 4 },
+	{ 2, 1, 4, 6, 8, 7, 9, 5, 3, 0 },
+	{ 4, 2, 1, 6, 8, 7, 9, 5, 3, 0 },
+	{ 1, 2, 4, 0, 3, 5, 9, 7, 8, 6 },
+	{ 1, 2, 0, 3, 5, 9, 7, 8, 6, 4 },
+	{ 1, 0, 3, 5, 9, 7, 8, 6, 4, 2 },
+	{ 3, 5, 9, 7, 8, 6, 4, 1, 0, 2 },
+	{ 3, 5, 9, 7, 8, 6, 1, 0, 2, 4 },
+	{ 3, 5, 1, 0, 2, 4, 6, 8, 7, 9 },
+	{ 3, 1, 0, 2, 4, 6, 8, 7, 9, 5 },
+	{ 1, 0, 2, 4, 6, 8, 7, 9, 5, 3 },
+	{ 3, 5, 9, 7, 8, 6, 4, 0, 2, 1 },
+	{ 3, 5, 9, 7, 8, 6, 0, 1, 4, 2 },
+	{ 3, 5, 9, 7, 8, 6, 0, 4, 2, 1 },
+	{ 3, 5, 0, 9, 7, 8, 6, 4, 2, 1 },
+	{ 3, 0, 5, 9, 7, 8, 6, 4, 2, 1 },
+	{ 1, 4, 6, 8, 7, 9, 5, 2, 3, 0 },
+	{ 3, 2, 5, 9, 7, 8, 6, 0, 1, 4 },
+	{ 1, 4, 6, 8, 7, 9, 2, 3, 5, 0 },
+	{ 3, 5, 9, 7, 8, 6, 4, 1, 2, 0 },
+	{ 1, 4, 6, 8, 7, 9, 5, 3, 0, 2 },
+	{ 1, 4, 6, 8, 7, 9, 5, 0, 2, 3 },
+	{ 1, 4, 6, 8, 7, 9, 0, 2, 3, 5 },
+	{ 1, 3, 5, 0, 2, 4, 6, 8, 7, 9 },
+	{ 1, 3, 0, 2, 4, 6, 8, 7, 9, 5 },
+	{ 3, 1, 2, 0, 4, 6, 8, 7, 9, 5 },
+	{ 3, 5, 9, 7, 8, 6, 0, 2, 4, 1 },
+	{ 1, 4, 6, 8, 7, 9, 5, 2, 0, 3 },
+	{ 1, 4, 2, 0, 3, 5, 9, 7, 8, 6 },
+	{ 2, 0, 3, 5, 1, 4, 6, 8, 7, 9 },
+	{ 2, 0, 3, 1, 4, 6, 8, 7, 9, 5 },
+	{ 4, 0, 2, 1, 3, 5, 9, 7, 8, 6 },
+	{ 2, 0, 4, 6, 8, 7, 9, 5, 1, 3 },
+	{ 2, 0, 4, 1, 3, 5, 9, 7, 8, 6 },
+	{ 3, 1, 5, 9, 7, 8, 6, 4, 0, 2 },
+	{ 2, 5, 3, 1, 9, 7, 8, 6, 4, 0 },
+	{ 5, 3, 1, 9, 7, 8, 6, 4, 0, 2 },
+	{ 1, 3, 5, 2, 0, 4, 6, 8, 7, 9 },
+	{ 4, 1, 6, 8, 7, 9, 5, 0, 3, 2 },
+	{ 2, 5, 9, 7, 8, 6, 3, 0, 4, 1 },
+	{ 1, 4, 0, 3, 6, 8, 7, 9, 5, 2 },
+	{ 3, 1, 4, 0, 2, 5, 9, 7, 8, 6 },
+	{ 2, 5, 1, 3, 0, 4, 6, 8, 7, 9 },
+	{ 4, 1, 2, 5, 0, 3, 6, 8, 7, 9 },
+	{ 2, 5, 9, 7, 8, 6, 0, 3, 1, 4 },
+	{ 2, 5, 0, 3, 1, 4, 6, 8, 7, 9 },
+	{ 4, 1, 3, 0, 2, 5, 9, 7, 8, 6 },
+	{ 4, 6, 8, 7, 9, 0, 3, 1, 5, 2 },
+	{ 1, 3, 0, 4, 2, 5, 9, 7, 8, 6 },
+	{ 3, 1, 5, 2, 0, 9, 7, 8, 6, 4 },
+	{ 3, 1, 6, 8, 7, 9, 5, 2, 0, 4 },
+	{ 3, 0, 2, 5, 1, 4, 6, 8, 7, 9 },
+	{ 1, 3, 2, 4, 0, 5, 9, 7, 8, 6 } };
+	for (int x = 0; x < 10; x++)
+	{
+		s.puzzle[x] = 9 - states[which][9 - x];
+	}
+}
 
 void BFS()
 {

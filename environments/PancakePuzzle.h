@@ -22,6 +22,12 @@ public:
 		for (unsigned int x = 0; x < puzzle.size(); x++)
 			puzzle[x] = x;
 	}
+	void FinishUnranking(PancakePuzzleState) {}
+	void Resize(unsigned int puzzle_size)
+	{
+		puzzle.resize(puzzle_size);
+		Reset();
+	}
 	std::vector<int> puzzle;
 };
 

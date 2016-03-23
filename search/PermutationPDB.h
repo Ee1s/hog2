@@ -32,9 +32,9 @@ public:
 	bool Load(const char *prefix);
 	void Save(const char *prefix);
 	std::string GetFileName(const char *prefix);
-private:
-	uint64_t Factorial(int val) const;
-	uint64_t FactorialUpperK(int n, int k) const;
+protected:
+	static uint64_t Factorial(int val);
+	static uint64_t FactorialUpperK(int n, int k);
 	std::vector<int> distinct;
 	size_t puzzleSize;
 	uint64_t pdbSize;
@@ -128,7 +128,7 @@ void PermutationPDB<state, action, environment>::GetStateFromPDBHash(uint64_t ha
 }
 
 template <class state, class action, class environment>
-uint64_t PermutationPDB<state, action, environment>::Factorial(int val) const
+uint64_t PermutationPDB<state, action, environment>::Factorial(int val)
 {
 	static uint64_t table[21] =
 	{ 1ll, 1ll, 2ll, 6ll, 24ll, 120ll, 720ll, 5040ll, 40320ll, 362880ll, 3628800ll, 39916800ll, 479001600ll,
@@ -197,7 +197,7 @@ void PermutationPDB<state, action, environment>::Save(FILE *f)
 }
 
 template <class state, class action, class environment>
-uint64_t PermutationPDB<state, action, environment>::FactorialUpperK(int n, int k) const
+uint64_t PermutationPDB<state, action, environment>::FactorialUpperK(int n, int k)
 {
 	uint64_t value = 1;
 	assert(n >= 0 && k >= 0);
