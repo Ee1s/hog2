@@ -41,7 +41,8 @@
 #include "PEMM.h"
 #include "PEMMRubik.h"
 #include "PEMMPancake.h"
-//#include "PEMMMNPuzzle.h"
+#include "PEMMMNPuzzle.h"
+#include "MR1PermutationPDB.h"
 
 struct hash128
 {
@@ -87,8 +88,9 @@ void GetSuperFlip(RubiksState &start);
 void GetDepth20(RubiksState &start, int which);
 void BuildHeuristics(RubiksState start, RubiksState goal, Heuristic<RubiksState> &result);
 void BuildHeuristics(int count, PancakePuzzleState start, PancakePuzzleState goal, Heuristic<PancakePuzzleState> &result);
-//void BuildHeuristics(MNPuzzleState start, MNPuzzleState goal, Heuristic<MNPuzzleState>& result);
+void BuildHeuristics(MNPuzzleState start, MNPuzzleState goal, Heuristic<MNPuzzleState>& result,int size);
 void GetInstance(int which, PancakePuzzleState &s);
+void GetMNPuzzleInstance(int which, MNPuzzleState &s);
 
 char *hprefix;
 
@@ -261,33 +263,43 @@ int main(int argc, char* argv[])
 	{
 		TestPruning(atoi(argv[2]), atoi(argv[3]));
 	}
-	//else if (strcmp(argv[1], "-mnpuzzle") == 0)
-	//{
-	//	hprefix = argv[5];
-	//	MNPuzzleState start(3,3);
-	//	MNPuzzleState goal(3, 3);
+	else if (strcmp(argv[1], "-mnpuzzle") == 0)
+	{
+		hprefix = argv[5];
+		int sz = 4;
+		MNPuzzleState start(sz,sz);
+		MNPuzzleState goal(sz, sz);
 
-	//	Heuristic<MNPuzzleState> forward;
-	//	Heuristic<MNPuzzleState> reverse;
-	//	BuildHeuristics(start, goal, forward);
-	//	BuildHeuristics(goal, start, reverse);
+		Heuristic<MNPuzzleState> forward;
+		Heuristic<MNPuzzleState> reverse;
 
-	//	MNPuzzle puzzle(3, 3);
-	//	PEMMMNPuzzle *searcher;
-	//	start.Reset();
-	//	std::vector<slideDir> actions;
-	//	puzzle.GetActions(start, actions);
-	//	puzzle.ApplyAction(start, actions[0]);
-	//	puzzle.ApplyAction(start, actions[1]);
-	//	puzzle.ApplyAction(start, actions[2]);
-	//	puzzle.ApplyAction(start, actions[0]);
-	//	puzzle.ApplyAction(start, actions[3]);
-	//	goal.Reset();
-	//	std::cout << "Start: " << start << std::endl;
-	//	std::cout << "Goal: " << goal << std::endl;
-	//	searcher = new PEMMMNPuzzle(start, goal, argv[3], argv[4], forward, reverse, &puzzle);
-	//	searcher->FindAPath();
-	//}
+		MNPuzzle puzzle(sz, sz);
+		start.Reset();
+
+		GetMNPuzzleInstance(atoi(argv[2]), start);
+		//std::vector<slideDir> actions;
+		//srand(time(0));
+		//for (int i = 0; i < 10; i++)
+		//{
+		//	puzzle.GetActions(start, actions);
+		//	puzzle.ApplyAction(start, actions[rand()%actions.size()]);
+		//}
+
+
+		goal.Reset();
+
+		BuildHeuristics(start, goal, forward,sz);
+		BuildHeuristics(goal, start, reverse,sz);
+
+
+		
+		PEMMMNPuzzle *searcher;
+
+		std::cout << "Start: " << start << std::endl;
+		std::cout << "Goal: " << goal << std::endl;
+		searcher = new PEMMMNPuzzle(start, goal, argv[3], argv[4], forward, reverse, &puzzle);
+		searcher->FindAPath();
+	}
 	else {
 		InstallHandlers();
 		RunHOGGUI(argc, argv);
@@ -467,9 +479,18 @@ void BuildHeuristics(int count, PancakePuzzleState start, PancakePuzzleState goa
 	//pdb3->Save(hprefix);
 }
 
-//void BuildHeuristics(MNPuzzleState start, MNPuzzleState goal, Heuristic<MNPuzzleState>& result)
-//{
-//}
+void BuildHeuristics(MNPuzzleState start, MNPuzzleState goal, Heuristic<MNPuzzleState>& result,int size)
+{
+	std::vector<int> pattern = { 0, 1, 2, 3, 4, 5, 6 };
+	MNPuzzle puzzle(size, size);
+	puzzle.StoreGoal(goal);
+	MNPuzzlePDB* pdb = new MNPuzzlePDB(&puzzle, goal, pattern);
+	//MR1PermutationPDB<MNPuzzleState, slideDir, MNPuzzle> pdb2(&mnp, t, pattern);
+	pdb->BuildPDB(goal, std::thread::hardware_concurrency());
+	result.lookups.push_back({ kLeafNode, 0, 0 });
+	std::cout << "result.lookups.size(): "<<result.lookups.size()<<"\n";
+	result.heuristics.push_back(pdb);
+}
 
 void GetInstance(int which, PancakePuzzleState &s)
 {
@@ -787,6 +808,38 @@ void GetInstance(int which, PancakePuzzleState &s)
 	{
 		s.puzzle[x] = 9 - states[which][9 - x];
 	}
+}
+
+void GetMNPuzzleInstance(int which, MNPuzzleState &s)
+{
+	int states[16][16] =
+	{
+		//easy ones
+		{4, 1, 2, 3, 9, 8, 6, 7, 12, 5, 10, 11, 13, 0, 14, 15},
+		{4, 1, 2, 3, 5, 6, 10, 7, 8, 9, 14, 11, 12, 0, 13, 15},
+		{4, 1, 2, 3, 8, 0, 6, 7, 9, 5, 10, 11, 12, 13, 14, 15},
+		{1, 2, 6, 3, 4, 5, 10, 7, 8, 9, 11, 15, 12, 13, 14, 0},
+		{4, 1, 2, 3, 8, 0, 6, 7, 9, 5, 10, 11, 12, 13, 14, 15},
+		{5, 4, 2, 3, 1, 0, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15},
+		{1, 2, 3, 7, 4, 5, 6, 11, 8, 9, 14, 10, 12, 0, 13, 15},
+		{4, 1, 2, 3, 5, 6, 7, 0, 8, 9, 10, 11, 12, 13, 14, 15},
+		{4, 1, 2, 3, 5, 6, 7, 0, 8, 9, 10, 11, 12, 13, 14, 15},
+		{1, 5, 2, 3, 4, 9, 6, 7, 0, 13, 10, 11, 8, 12, 14, 15},
+		//more diffcult
+		{14, 13, 15, 7, 11, 12, 9, 5, 6, 0, 2, 1, 4, 8, 10, 3},
+		{13, 5, 4, 10, 9, 12, 8, 14, 2, 3, 7, 1, 0, 15, 11, 6},
+		{14, 7, 8, 2, 13, 11, 10, 4, 9, 12, 5, 0, 3, 6, 1, 15},
+		{5, 12, 10, 7, 15, 11, 14, 0, 8, 2, 1, 13, 3, 4, 9, 6},
+		{7, 6, 8, 1, 11, 5, 14, 10, 3, 4, 9, 13, 15, 2, 0, 12},
+		{15, 2, 12, 11, 14, 13, 9, 5, 1, 3, 8, 7, 0, 10, 6, 4}
+	};
+	for (int i = 0; i < 16; i++)
+	{
+		s.puzzle[i] = states[which][i];
+		if (s.puzzle[i] == 0)
+			s.blank = i;
+	}
+		
 }
 
 void BFS()
