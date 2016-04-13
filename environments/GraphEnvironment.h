@@ -298,15 +298,16 @@ public:
 
 	OccupancyInterface<graphState, graphMove> *GetOccupancyInfo() { return 0; }
 	virtual double HCost(const graphState &state1, const graphState &state2) const;
-	virtual double GCost(const graphState &state1, const graphState &state2);
-	virtual double GCost(const graphState &state1, const graphMove &state2);
-	virtual bool GoalTest(const graphState &state, const graphState &goal);
+	virtual double GCost(const graphState &state1, const graphState &state2) const;
+	virtual double GCost(const graphState &state1, const graphMove &state2) const;
+	virtual bool GoalTest(const graphState &state, const graphState &goal) const;
 	virtual uint64_t GetStateHash(const graphState &state) const;
 	virtual uint64_t GetActionHash(graphMove act) const;
 	virtual void OpenGLDraw() const;
 	virtual void OpenGLDraw(const graphState &s) const;
 	virtual void OpenGLDraw(const graphState &s, const graphMove &gm) const;
 	virtual void OpenGLDraw(const graphState &s, const graphState&, float) const { OpenGLDraw(s); }
+	virtual void GLDrawLine(const graphState &x, const graphState &y) const;
 
 	Graph *GetGraph() { return g; };
 
@@ -318,16 +319,21 @@ public:
 		fprintf(stderr, "ERROR: Single State HCost not implemented for GraphEnvironment\n");
 		exit(1); return -1.0;}
 
-	virtual bool GoalTest(const graphState &){
+	virtual bool GoalTest(const graphState &) const {
 		fprintf(stderr, "ERROR: Single State Goal Test not implemented for GraphEnvironment\n");
 		exit(1); return false;
 	}
-
+	void SetDrawEdgeCosts(bool val) { drawEdgeCosts = val; }
+	void SetDrawNodeLabels(bool val) { drawNodeLabels = val; }
+	void SetNodeScale(double v) { nodeScale = v; }
 protected:
 	bool directed;
 	Map *m;
 	Graph *g;
 	GraphHeuristic *h;
+	bool drawEdgeCosts;
+	bool drawNodeLabels;
+	double nodeScale;
 };
 
 class AbstractionGraphEnvironment: public GraphEnvironment {

@@ -96,12 +96,16 @@ public:
 	int GetMemoryUsage();
 	
 	bool GetClosedListGCost(const state &val, double &gCost) const;
+	bool GetOpenListGCost(const state &val, double &gCost) const;
+	bool GetClosedItem(const state &s, AStarOpenClosedData<state> &);
 	unsigned int GetNumOpenItems() { return openClosedList.OpenSize(); }
 	inline const AStarOpenClosedData<state> &GetOpenItem(unsigned int which) { return openClosedList.Lookat(openClosedList.GetOpenItem(which)); }
 	inline const int GetNumItems() { return openClosedList.size(); }
 	inline const AStarOpenClosedData<state> &GetItem(unsigned int which) { return openClosedList.Lookat(which); }
 	bool HaveExpandedState(const state &val)
 	{ uint64_t key; return openClosedList.Lookup(env->GetStateHash(val), key) != kNotFound; }
+	dataLocation GetStateLocation(const state &val)
+	{ uint64_t key; return openClosedList.Lookup(env->GetStateHash(val), key); }
 	
 	void SetUseBPMX(int depth) { useBPMX = depth; if (depth) reopenNodes = true; }
 	int GetUsingBPMX() { return useBPMX; }
@@ -570,7 +574,7 @@ int TemplateAStar<state, action,environment>::GetMemoryUsage()
  * @param val The state to lookup in the closed list
  * @gCost The g-cost of the node in the closed list
  * @return success Whether we found the value or not
- * more states
+ * the states
  */
 template <class state, class action, class environment>
 bool TemplateAStar<state, action,environment>::GetClosedListGCost(const state &val, double &gCost) const
@@ -584,6 +588,34 @@ bool TemplateAStar<state, action,environment>::GetClosedListGCost(const state &v
 	}
 	return false;
 }
+
+template <class state, class action, class environment>
+bool TemplateAStar<state, action,environment>::GetOpenListGCost(const state &val, double &gCost) const
+{
+	uint64_t theID;
+	dataLocation loc = openClosedList.Lookup(env->GetStateHash(val), theID);
+	if (loc == kOpenList)
+	{
+		gCost = openClosedList.Lookat(theID).g;
+		return true;
+	}
+	return false;
+}
+
+template <class state, class action, class environment>
+bool TemplateAStar<state, action,environment>::GetClosedItem(const state &s, AStarOpenClosedData<state> &result)
+{
+	uint64_t theID;
+	dataLocation loc = openClosedList.Lookup(env->GetStateHash(s), theID);
+	if (loc == kClosedList)
+	{
+		result = openClosedList.Lookat(theID);
+		return true;
+	}
+	return false;
+
+}
+
 
 /**
  * Draw the open/closed list
@@ -642,11 +674,16 @@ void TemplateAStar<state, action,environment>::OpenGLDraw() const
 //				env->SetColor((data.g+data.h-minf)/(maxf-minf), 0.0, 0.0, transparency);
 //			}
 //			else {
-			env->SetColor(1.0, 0.0, 0.0, transparency);
+			if (data.parentID == x)
+				env->SetColor(1.0, 0.5, 0.5, transparency);
+			else
+				env->SetColor(1.0, 0.0, 0.0, transparency);
 //			}
 			env->OpenGLDraw(data.data);
 		}
 	}
+	env->SetColor(1.0, 0.5, 1.0, 0.5);
+	env->OpenGLDraw(goal);
 }
 
 #endif

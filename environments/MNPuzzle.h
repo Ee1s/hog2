@@ -119,12 +119,12 @@ public:
 	double HCost(const MNPuzzleState &state1) const;
 	double DefaultH(const MNPuzzleState &s) const;
 
-	double GCost(const MNPuzzleState &state1, const MNPuzzleState &state2);
-	double GCost(const MNPuzzleState &, const slideDir &);
+	double GCost(const MNPuzzleState &state1, const MNPuzzleState &state2) const;
+	double GCost(const MNPuzzleState &, const slideDir &) const;
 	double AdditiveGCost(const MNPuzzleState &, const slideDir &);
-	bool GoalTest(const MNPuzzleState &state, const MNPuzzleState &goal);
+	bool GoalTest(const MNPuzzleState &state, const MNPuzzleState &goal) const;
 
-	bool GoalTest(const MNPuzzleState &s);
+	bool GoalTest(const MNPuzzleState &s) const;
 
 	void GetStateFromPDBHash(uint64_t hash, MNPuzzleState &s,
 							 int count, const std::vector<int> &pattern,
@@ -188,8 +188,10 @@ public:
 	std::vector<slideDir> Get_Op_Order(){return ops_in_order;}
 
 	static MNPuzzleState Generate_Random_Puzzle(unsigned num_cols, unsigned num_rows);
-	virtual void GetStateFromHash(MNPuzzleState &s, uint64_t hash) const;
 
+	virtual void GetStateFromHash(MNPuzzleState &s, uint64_t hash) const;
+	uint64_t GetStateHash(const MNPuzzleState &s) const;
+	uint64_t GetMaxStateHash() const;
 	
 	bool State_Check(const MNPuzzleState &to_check);
 

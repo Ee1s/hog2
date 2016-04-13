@@ -48,6 +48,11 @@ Graph::Graph()
 Graph::~Graph()
 {
 	//	cout << "destructor got called" << endl;
+	Reset();
+}
+
+void Graph::Reset()
+{
 	node_iterator ni;
 	edge_iterator ei;
 	ni = getNodeIter();
@@ -74,6 +79,8 @@ Graph::~Graph()
 		} else
 			break;
 	}
+	_nodes.clear();
+	_edges.clear();
 }
 
 graph_object *Graph::Clone() const
@@ -157,6 +164,12 @@ node *Graph::GetNode(unsigned long num)
 	return 0;
 }
 
+const node *Graph::GetNode(unsigned long num) const
+{
+	if (num < _nodes.size()) return _nodes[num];
+	return 0;
+}
+
 edge *Graph::GetEdge(unsigned long num)
 {
 	if (num < _edges.size()) return _edges[num];
@@ -193,6 +206,24 @@ edge *Graph::findDirectedEdge(unsigned int from, unsigned int to)
 			break;
 		if (e->getTo() == to)
 			return e;
+	}
+	return 0;
+}
+
+const edge *Graph::FindEdge(unsigned int from, unsigned int to) const
+{
+	const node *n = GetNode(from);
+	if (n)
+	{
+		edge_iterator ei = n->getEdgeIter();
+		while (1)
+		{
+			edge *e = n->edgeIterNext(ei);
+			if (e == 0) break;
+			if (((e->getTo() == to) && (e->getFrom() == from)) ||
+				((e->getFrom() == to) && (e->getTo() == from)))
+				return e;
+		}
 	}
 	return 0;
 }

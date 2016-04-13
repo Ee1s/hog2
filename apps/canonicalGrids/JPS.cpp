@@ -7,12 +7,14 @@
 //
 
 #include "JPS.h"
+#include <string>
 #include <algorithm>
 
 JPS::JPS()
 {
 	env = 0;
 	weight = 1.0;
+	jumpLimit = -1;
 }
 
 bool JPS::InitializeSearch(MapEnvironment *env, const xyLoc& from, const xyLoc& to, std::vector<xyLoc> &thePath)
@@ -152,7 +154,13 @@ void JPS::GetJPSSuccessors(int x, int y, uint8_t parent, const xyLoc &goal, doub
 				successors.push_back(jpsSuccessor(x, y-1, tDirection(kNE), cost+1));
 			}
 			else {
-				GetJPSSuccessors(x, y-1, kN, goal, cost+1);
+				if (cost >= jumpLimit)
+				{
+					successors.push_back(jpsSuccessor(x, y-1, tDirection(kN), cost+1));
+				}
+				else {
+					GetJPSSuccessors(x, y-1, kN, goal, cost+1);
+				}
 			}
 			n1 = true;
 		}
@@ -181,7 +189,14 @@ void JPS::GetJPSSuccessors(int x, int y, uint8_t parent, const xyLoc &goal, doub
 				successors.push_back(jpsSuccessor(x-1, y, tDirection(kSW), cost+1));
 			}
 			else {
-				GetJPSSuccessors(x-1, y, kW, goal, cost+1);
+				if (cost >= jumpLimit)
+				{
+					successors.push_back(jpsSuccessor(x-1, y, tDirection(kW), cost+1));
+				}
+				else {
+					GetJPSSuccessors(x-1, y, kW, goal, cost+1);
+				}
+
 			}
 			e1 = true;
 		}
@@ -209,7 +224,13 @@ void JPS::GetJPSSuccessors(int x, int y, uint8_t parent, const xyLoc &goal, doub
 				successors.push_back(jpsSuccessor(x, y+1, tDirection(kSE), cost+1));
 			}
 			else {
-				GetJPSSuccessors(x, y+1, kS, goal, cost+1);
+				if (cost >= jumpLimit)
+				{
+					successors.push_back(jpsSuccessor(x, y+1, tDirection(kS), cost+1));
+				}
+				else {
+					GetJPSSuccessors(x, y+1, kS, goal, cost+1);
+				}
 			}
 			s1 = true;
 		}
@@ -238,7 +259,13 @@ void JPS::GetJPSSuccessors(int x, int y, uint8_t parent, const xyLoc &goal, doub
 				successors.push_back(jpsSuccessor(x+1, y, tDirection(kSE), cost+1));
 			}
 			else {
-				GetJPSSuccessors(x+1, y, kE, goal, cost+1);
+				if (cost >= jumpLimit)
+				{
+					successors.push_back(jpsSuccessor(x+1, y, tDirection(kE), cost+1));
+				}
+				else {
+					GetJPSSuccessors(x+1, y, kE, goal, cost+1);
+				}
 			}
 			w1 = true;
 		}
@@ -247,32 +274,52 @@ void JPS::GetJPSSuccessors(int x, int y, uint8_t parent, const xyLoc &goal, doub
 	{
 		if (x != 0 && y != 0 && Passable(x-1, (y-1)) && n1 && e1)
 		{
-			GetJPSSuccessors(x-1, y-1, kNW, goal, cost+ROOT_TWO);
-			//neighbors.push_back(xyLoc(x-1, y-1, kNW));
+			if (cost >= jumpLimit)
+			{
+				successors.push_back(jpsSuccessor(x-1, y-1, tDirection(kNW), cost+ROOT_TWO));
+			}
+			else {
+				GetJPSSuccessors(x-1, y-1, kNW, goal, cost+ROOT_TWO);
+			}
 		}
 	}
 	if (parent&kNE)
 	{
 		if (x != w-1 && y != 0 && Passable(x+1, (y-1)) && n1 && w1)
 		{
-			GetJPSSuccessors(x+1, y-1, kNE, goal, cost+ROOT_TWO);
-			//neighbors.push_back(xyLoc(x+1, y-1, kNE));
+			if (cost >= jumpLimit)
+			{
+				successors.push_back(jpsSuccessor(x+1, y-1, tDirection(kNE), cost+ROOT_TWO));
+			}
+			else {
+				GetJPSSuccessors(x+1, y-1, kNE, goal, cost+ROOT_TWO);
+			}
 		}
 	}
 	if (parent&kSW)
 	{
 		if (x != 0 && y != h-1 && Passable(x-1, (y+1)) && s1 && e1)
 		{
-			GetJPSSuccessors(x-1, y+1, kSW, goal, cost+ROOT_TWO);
-			//neighbors.push_back(xyLoc(x-1, y+1, kSW));
+			if (cost >= jumpLimit)
+			{
+				successors.push_back(jpsSuccessor(x-1, y+1, tDirection(kSW), cost+ROOT_TWO));
+			}
+			else {
+				GetJPSSuccessors(x-1, y+1, kSW, goal, cost+ROOT_TWO);
+			}
 		}
 	}
 	if (parent&kSE)
 	{
 		if (x != w-1 && y != h-1 && Passable(x+1, (y+1)) && s1 && w1)
 		{
-			GetJPSSuccessors(x+1, y+1, kSE, goal, cost+ROOT_TWO);
-			//neighbors.push_back(xyLoc(x+1, y+1, kSE));
+			if (cost >= jumpLimit)
+			{
+				successors.push_back(jpsSuccessor(x+1, y+1, tDirection(kSE), cost+ROOT_TWO));
+			}
+			else {
+				GetJPSSuccessors(x+1, y+1, kSE, goal, cost+ROOT_TWO);
+			}
 		}
 	}
 }
@@ -301,6 +348,61 @@ void JPS::LogFinalStats(StatCollection *stats)
 	
 }
 
+std::string JPS::SVGDraw()
+{
+	std::string s;
+	double transparency = 1.0;
+	if (openClosedList.size() == 0)
+		return s;
+	uint64_t top = -1;
+	
+	if (openClosedList.OpenSize() > 0)
+	{
+		top = openClosedList.Peek();
+	}
+	for (unsigned int x = 0; x < openClosedList.size(); x++)
+	{
+		const AStarOpenClosedData<xyLocParent> &data = openClosedList.Lookat(x);
+
+		env->SetColor(1.0, 1.0, 1.0);
+		s += env->SVGDrawLine(data.data.loc, openClosedList.Lookat(data.parentID).data.loc, 3);
+		env->SetColor(0.0, 0.0, 0.0);
+		s += env->SVGDrawLine(data.data.loc, openClosedList.Lookat(data.parentID).data.loc, 2);
+	}
+	for (unsigned int x = 0; x < openClosedList.size(); x++)
+	{
+		const AStarOpenClosedData<xyLocParent> &data = openClosedList.Lookat(x);
+
+		if (x == top)
+		{
+			env->SetColor(1.0, 1.0, 0.0, transparency);
+			s+=env->SVGDraw(data.data.loc);
+		}
+		if ((data.where == kOpenList) && (data.reopened))
+		{
+			env->SetColor(0.0, 0.5, 0.5, transparency);
+			s+=env->SVGDraw(data.data.loc);
+		}
+		else if (data.where == kOpenList)
+		{
+			env->SetColor(0.0, 1.0, 0.0, transparency);
+			s+=env->SVGDraw(data.data.loc);
+		}
+		else if ((data.where == kClosedList) && (data.reopened))
+		{
+			env->SetColor(0.5, 0.0, 0.5, transparency);
+			s+=env->SVGDraw(data.data.loc);
+		}
+		else if (data.where == kClosedList)
+		{
+			env->SetColor(1.0, 0.0, 0.0, transparency);
+			s+=env->SVGDraw(data.data.loc);
+		}
+	}
+	return s;
+}
+
+
 void JPS::OpenGLDraw() const
 {
 	double transparency = 1.0;
@@ -315,6 +417,15 @@ void JPS::OpenGLDraw() const
 	for (unsigned int x = 0; x < openClosedList.size(); x++)
 	{
 		const AStarOpenClosedData<xyLocParent> &data = openClosedList.Lookat(x);
+
+		glLineWidth(2);
+		env->SetColor(1.0, 1.0, 1.0);
+		env->GLDrawLine(data.data.loc, openClosedList.Lookat(data.parentID).data.loc);
+		glLineWidth(3);
+		env->SetColor(0.0, 0.0, 0.0);
+		env->GLDrawLine(data.data.loc, openClosedList.Lookat(data.parentID).data.loc);
+		glLineWidth(1);
+
 		if (x == top)
 		{
 			env->SetColor(1.0, 1.0, 0.0, transparency);
