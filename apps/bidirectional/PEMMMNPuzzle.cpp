@@ -2,30 +2,33 @@
 
 int PEMMMNPuzzle::GetBucket(const MNPuzzleState &s)
 {
-	MNPuzzle puzzle(s.width, s.height);
-	uint64_t hash = puzzle.GetStateHash(s);
-	//std::cout << "state: " << s << " bucket: " << (int)(hash & 0x1F) <<"\n";
+	//MNPuzzle puzzle(s.width, s.height);
+	//uint64_t hash = puzzle.GetStateHash(s);
+	uint64_t hash = MNPuzzlePDB::GetStateHash(s);
+	std::cout << "getbucket, state: " << s << " hash: "<<hash<<" bucket: " << (int)(hash & 0x1F) <<"\n";
 	return hash & 0x1F;
 }
 
 void PEMMMNPuzzle::GetBucketAndData(const MNPuzzleState &s, int &bucket, uint64_t &data)
 {
-	MNPuzzle puzzle(s.width, s.height);
-	uint64_t hash = puzzle.GetStateHash(s);
+	//MNPuzzle puzzle(s.width, s.height);
+	//uint64_t hash = puzzle.GetStateHash(s);
+	uint64_t hash = MNPuzzlePDB::GetStateHash(s);
 	bucket = hash & 0x1F;
 	data = hash >> 5;
-	//std::cout << "state: " << s << " bucket: " << bucket << " data: " << data << "\n";
+	std::cout << "getbuanddata state: " << s << " hash: " << hash << " bucket: " << bucket << " data: " << data << "\n";
 
 }
 
 void PEMMMNPuzzle::GetState(MNPuzzleState &s, int bucket, uint64_t data)
 {
-	//std::cout << "\nget state from data:"<<data <<" bucket:" <<bucket;
-	MNPuzzle puzzle(s.width, s.height);
+	std::cout << "\nget state from data:"<<data <<" bucket:" <<bucket;
+	//MNPuzzle puzzle(s.width, s.height);
 	uint64_t hash = (data << 5) | bucket;
-	//std::cout << " hash :" << hash << "\n";
-	puzzle.GetStateFromHash(s, hash);
-	//std::cout << "state: " << s << " bucket: " << bucket << " data: " << data << "\n";
+	std::cout << " hash :" << hash << "\n";
+	//puzzle.GetStateFromHash(s, hash);
+	MNPuzzlePDB::GetStateFromHash(s, hash);
+	std::cout << "state: " << s << " bucket: " << bucket << " data: " << data << "\n";
 }
 
 
@@ -81,7 +84,7 @@ uint64_t MNPuzzlePDB::GetRank(const MNPuzzleState &s)
 {
 	int size = s.puzzle.size();
 	uint64_t mul = 0;
-	uint64_t rank = 1;
+	uint64_t rank = 0;
 	uint64_t countRight;
 	for (int i = 0; i < size; i++)
 	{
@@ -112,7 +115,6 @@ void MNPuzzlePDB::GetStateFromHash(MNPuzzleState &node, uint64_t hash)
 	for (int i = 0; i < size; i++)
 		pz.push_back(i);
 	uint64_t countRight = 0;
-	hash = hash - 1;
 	for (int i = 0; i < size; i++)
 	{
 		countRight = hash / Factorial(size - 1 - i);
