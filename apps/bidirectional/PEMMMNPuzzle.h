@@ -24,6 +24,7 @@ public:
 		PermutationPDB(e, s, distincts)
 	{
 		SetGoal(s);
+		//goalState = s;
 	}
 
 	static uint64_t GetStateHash(const MNPuzzleState& s);
@@ -34,7 +35,7 @@ public:
 	void Save(const char *prefix);
 	bool Load(FILE *f);
 	void Save(FILE *f);
-	//std::string GetFileName(const char *prefix);
+	std::string GetFileName(const char *prefix);
 };
 //
 

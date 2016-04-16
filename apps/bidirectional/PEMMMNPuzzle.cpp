@@ -35,26 +35,28 @@ void PEMMMNPuzzle::GetState(MNPuzzleState &s, int bucket, uint64_t data)
 //
 bool MNPuzzlePDB::Load(const char *prefix)
 {
-	FILE *f = fopen(GetFileName(prefix).c_str(), "rb");
+	std::string fileName = GetFileName(prefix);
+	FILE *f = fopen(fileName.c_str(), "rb");
 	if (f == 0)
 	{
-		std::cout << "Could not load PDB: " << GetFileName(prefix) << "\n";
+		std::cout << "Could not load PDB: " << fileName << "\n";
 		return false;
 	}
 	bool result = Load(f);
 	fclose(f);
 	if (result)
-		std::cout << "Successfully loaded PDB: " << GetFileName(prefix) << "\n";
+		std::cout << "Successfully loaded PDB: " << fileName << "\n";
 	else
-		std::cout << "Could not load PDB: " << GetFileName(prefix) << "\n";
+		std::cout << "Could not load PDB: " << fileName << "\n";
 	return result;
 }
 void MNPuzzlePDB::Save(const char *prefix)
 {
-	FILE *f = fopen(GetFileName(prefix).c_str(), "w+b");
+	std::string fileName = GetFileName(prefix);
+	FILE *f = fopen(fileName.c_str(), "w+b");
 	Save(f);
 	fclose(f);
-	std::cout << "Saved PDB: " << GetFileName(prefix) << "\n";
+	std::cout << "Saved PDB: " << fileName << "\n";
 }
 bool MNPuzzlePDB::Load(FILE *f)
 {
@@ -70,13 +72,35 @@ void MNPuzzlePDB::Save(FILE *f)
 	fwrite(&goalState, sizeof(goalState), 1, f);
 	PDB.Write(f);
 }
-//std::string MNPuzzlePDB::GetFileName(const char *prefix)
-//{
-//	//std::string fileName;
-//	//fileName += prefix;
-//	//return fileName;
-//	return ((PermutationPDB<MNPuzzleState, slideDir, MNPuzzle>*)this)->GetFileName(prefix);
-//}
+std::string MNPuzzlePDB::GetFileName(const char *prefix)
+{
+	//std::string fileName;
+	//fileName += prefix;
+	//return fileName;
+	std::string fileName;
+	fileName += prefix;
+	// For unix systems, the prefix should always end in a trailing slash
+	if (fileName.back() != '/')
+		fileName += '/';
+	fileName += env->GetName();
+	fileName += "-";
+	for (int x = 0; x < goalState.puzzle.size(); x++)
+	{
+		fileName += std::to_string(goalState.puzzle[x]);
+		fileName += ";";
+	}
+	fileName.pop_back(); // remove colon
+	fileName += "-";
+	for (int x = 0; x < distinct.size(); x++)
+	{
+		fileName += std::to_string(distinct[x]);
+		fileName += ";";
+	}
+	fileName.pop_back(); // remove colon
+	fileName += "-lex.pdb";
+
+	return fileName;
+}
 //
 
 
