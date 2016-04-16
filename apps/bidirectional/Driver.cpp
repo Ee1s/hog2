@@ -263,10 +263,10 @@ int main(int argc, char* argv[])
 	{
 		TestPruning(atoi(argv[2]), atoi(argv[3]));
 	}
-	else if (strcmp(argv[1], "-mnpuzzle") == 0)
+	else if (strcmp(argv[1], "-mnpuzzle3") == 0)
 	{
 		hprefix = argv[5];
-		int sz = 4;
+		int sz = 3;
 		MNPuzzleState start(sz,sz);
 		MNPuzzleState goal(sz, sz);
 
@@ -275,6 +275,48 @@ int main(int argc, char* argv[])
 
 		MNPuzzle puzzle(sz, sz);
 		start.Reset();
+		goal.Reset();
+
+		std::vector<MNPuzzleState> testcases;
+		MNPuzzle::Create_Random_MN_Puzzles(goal, testcases, 20);
+		//GetMNPuzzleInstance(atoi(argv[2]), start);
+		//std::vector<slideDir> actions;
+		//srand(time(0));
+		//for (int i = 0; i < 10; i++)
+		//{
+		//	puzzle.GetActions(start, actions);
+		//	puzzle.ApplyAction(start, actions[rand()%actions.size()]);
+		//}
+
+		
+		start = testcases[atoi(argv[2])];
+
+		BuildHeuristics(start, goal, forward,sz);
+		BuildHeuristics(goal, start, reverse,sz);
+
+
+		
+		PEMMMNPuzzle *searcher;
+
+		std::cout << "Start: " << start << std::endl;
+		std::cout << "Goal: " << goal << std::endl;
+		searcher = new PEMMMNPuzzle(start, goal, argv[3], argv[4], forward, reverse, &puzzle);
+		searcher->FindAPath();
+	}
+	else if (strcmp(argv[1], "-mnpuzzle4") == 0)
+	{
+		hprefix = argv[5];
+		int sz = 4;
+		MNPuzzleState start(sz, sz);
+		MNPuzzleState goal(sz, sz);
+
+		Heuristic<MNPuzzleState> forward;
+		Heuristic<MNPuzzleState> reverse;
+
+		MNPuzzle puzzle(sz, sz);
+		start.Reset();
+		goal.Reset();
+
 
 		GetMNPuzzleInstance(atoi(argv[2]), start);
 		//std::vector<slideDir> actions;
@@ -285,14 +327,11 @@ int main(int argc, char* argv[])
 		//	puzzle.ApplyAction(start, actions[rand()%actions.size()]);
 		//}
 
-
-		goal.Reset();
-
-		BuildHeuristics(start, goal, forward,sz);
-		BuildHeuristics(goal, start, reverse,sz);
+		BuildHeuristics(start, goal, forward, sz);
+		BuildHeuristics(goal, start, reverse, sz);
 
 
-		
+
 		PEMMMNPuzzle *searcher;
 
 		std::cout << "Start: " << start << std::endl;
@@ -486,7 +525,16 @@ void BuildHeuristics(MNPuzzleState start, MNPuzzleState goal, Heuristic<MNPuzzle
 	puzzle.StoreGoal(goal);
 	MNPuzzlePDB* pdb = new MNPuzzlePDB(&puzzle, goal, pattern);
 	//MR1PermutationPDB<MNPuzzleState, slideDir, MNPuzzle> pdb2(&mnp, t, pattern);
-	pdb->BuildPDB(goal, std::thread::hardware_concurrency());
+	if (!pdb->Load(hprefix))
+	{
+		printf("Building heuristic\n");
+		pdb->BuildPDB(goal, std::thread::hardware_concurrency());
+		pdb->Save(hprefix);
+	}
+	else {
+		printf("Loaded previous heuristic\n");
+	}
+	//pdb->BuildPDB(goal, std::thread::hardware_concurrency());
 	result.lookups.push_back({ kLeafNode, 0, 0 });
 	std::cout << "result.lookups.size(): "<<result.lookups.size()<<"\n";
 	result.heuristics.push_back(pdb);

@@ -22,6 +22,15 @@
 class MNPuzzleState {
 public:
 	MNPuzzleState() { width = height = -1; }
+	MNPuzzleState(const MNPuzzleState& s)
+	{
+		width = s.width;
+		height = s.height;
+		blank = s.blank;
+		puzzle.resize(0);
+		for (int i = 0; i < s.puzzle.size(); i++)
+			puzzle.push_back(s.puzzle[i]);
+	}
 	MNPuzzleState(unsigned int _width, unsigned int _height)
 	:width(_width), height(_height)
   {

@@ -348,6 +348,7 @@ void PEMM<state, action>::GetOpenData(const state &start, tSearchDirection dir, 
 	d.bucket = bucket;
 	//d.priority = d.gcost+d.hcost;
 	d.priority = std::max(d.gcost + d.hcost, d.gcost * 2);
+	std::cout << "get opendata: " << d << "\n";
 }
 
 template<class state, class action>

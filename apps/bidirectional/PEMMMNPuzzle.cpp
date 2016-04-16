@@ -2,59 +2,81 @@
 
 int PEMMMNPuzzle::GetBucket(const MNPuzzleState &s)
 {
-	//MNPuzzle puzzle(s.width, s.height);
-	//uint64_t hash = puzzle.GetStateHash(s);
-	uint64_t hash = MNPuzzlePDB::GetStateHash(s);
-	std::cout << "getbucket, state: " << s << " hash: "<<hash<<" bucket: " << (int)(hash & 0x1F) <<"\n";
+	MNPuzzle puzzle(s.width, s.height);
+	uint64_t hash = puzzle.GetStateHash(s);
+	//uint64_t hash = MNPuzzlePDB::GetStateHash(s);
+	//std::cout << "getbucket, state: " << s << " hash: "<<hash<<" bucket: " << (int)(hash & 0x1F) <<"\n";
 	return hash & 0x1F;
 }
 
 void PEMMMNPuzzle::GetBucketAndData(const MNPuzzleState &s, int &bucket, uint64_t &data)
 {
-	//MNPuzzle puzzle(s.width, s.height);
-	//uint64_t hash = puzzle.GetStateHash(s);
-	uint64_t hash = MNPuzzlePDB::GetStateHash(s);
+	MNPuzzle puzzle(s.width, s.height);
+	uint64_t hash = puzzle.GetStateHash(s);
+	//uint64_t hash = MNPuzzlePDB::GetStateHash(s);
 	bucket = hash & 0x1F;
 	data = hash >> 5;
-	std::cout << "getbuanddata state: " << s << " hash: " << hash << " bucket: " << bucket << " data: " << data << "\n";
+	//std::cout << "getbuanddata state: " << s << " hash: " << hash << " bucket: " << bucket << " data: " << data << "\n";
 
 }
 
 void PEMMMNPuzzle::GetState(MNPuzzleState &s, int bucket, uint64_t data)
 {
-	std::cout << "\nget state from data:"<<data <<" bucket:" <<bucket;
-	//MNPuzzle puzzle(s.width, s.height);
+	//std::cout << "\nget state from data:"<<data <<" bucket:" <<bucket;
 	uint64_t hash = (data << 5) | bucket;
-	std::cout << " hash :" << hash << "\n";
-	//puzzle.GetStateFromHash(s, hash);
-	MNPuzzlePDB::GetStateFromHash(s, hash);
-	std::cout << "state: " << s << " bucket: " << bucket << " data: " << data << "\n";
+	//std::cout << " hash :" << hash << "\n";
+	MNPuzzle puzzle(s.width, s.height);
+	puzzle.GetStateFromHash(s, hash);
+	//MNPuzzlePDB::GetStateFromHash(s, hash);
+	//std::cout << "state: " << s << " bucket: " << bucket << " data: " << data << "\n";
 }
 
 
 //
 bool MNPuzzlePDB::Load(const char *prefix)
 {
-
+	FILE *f = fopen(GetFileName(prefix).c_str(), "rb");
+	if (f == 0)
+	{
+		std::cout << "Could not load PDB: " << GetFileName(prefix) << "\n";
+		return false;
+	}
+	bool result = Load(f);
+	fclose(f);
+	if (result)
+		std::cout << "Successfully loaded PDB: " << GetFileName(prefix) << "\n";
+	else
+		std::cout << "Could not load PDB: " << GetFileName(prefix) << "\n";
+	return result;
 }
 void MNPuzzlePDB::Save(const char *prefix)
 {
-
+	FILE *f = fopen(GetFileName(prefix).c_str(), "w+b");
+	Save(f);
+	fclose(f);
+	std::cout << "Saved PDB: " << GetFileName(prefix) << "\n";
 }
 bool MNPuzzlePDB::Load(FILE *f)
 {
-
+	if (fread(&type, sizeof(type), 1, f) != 1)
+		return false;
+	if (fread(&goalState, sizeof(goalState), 1, f) != 1)
+		return false;
+	return PDB.Read(f);
 }
 void MNPuzzlePDB::Save(FILE *f)
 {
-
+	fwrite(&type, sizeof(type), 1, f);
+	fwrite(&goalState, sizeof(goalState), 1, f);
+	PDB.Write(f);
 }
-std::string MNPuzzlePDB::GetFileName(const char *prefix)
-{
-	std::string fileName;
-	fileName += prefix;
-	return fileName;
-}
+//std::string MNPuzzlePDB::GetFileName(const char *prefix)
+//{
+//	//std::string fileName;
+//	//fileName += prefix;
+//	//return fileName;
+//	return ((PermutationPDB<MNPuzzleState, slideDir, MNPuzzle>*)this)->GetFileName(prefix);
+//}
 //
 
 
@@ -128,7 +150,7 @@ void MNPuzzlePDB::GetStateFromHash(MNPuzzleState &node, uint64_t hash)
 		if (node.puzzle[i] == 0)
 		{
 			node.blank = i;
-			return;
+			break;
 		}
 	}
 	//std::cout << "node" << node << "\n";
