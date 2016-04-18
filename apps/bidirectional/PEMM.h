@@ -50,9 +50,23 @@ static std::ostream &operator<<(std::ostream &out, const openData &d)
 
 struct openDataHash
 {
+	//std::size_t operator()(const openData & x) const
+	//{
+	//	return (x.dir) | (x.priority << 2) | (x.gcost << 8) | (x.hcost << 12) | (x.bucket << 20);
+	//}
 	std::size_t operator()(const openData & x) const
 	{
-		return (x.dir) | (x.priority << 2) | (x.gcost << 8) | (x.hcost << 12) | (x.bucket << 20);
+		std::size_t hash = 0;
+		hash = x.bucket;
+		hash = hash << 8;
+		hash = hash | x.hcost;
+		hash = hash << 8;
+		hash = hash | x.gcost;
+		hash = hash << 8;
+		hash = hash | x.priority;
+		hash = hash << 2;
+		hash = hash | x.dir;
+		return hash;
 	}
 };
 
@@ -68,11 +82,28 @@ static bool operator==(const closedData &a,const closedData &b)
 		return (a.dir == b.dir && a.depth == b.depth && a.bucket == b.bucket);
 	}
 
+static std::ostream &operator<<(std::ostream &out, const closedData &d)
+{
+	out << "[" << ((d.dir == kForward) ? "forward" : "backward") << ", depth:" << +d.depth;
+	out << ", b:" << +d.bucket << "]";
+	return out;
+}
+
 struct closedDataHash
 {
+	//std::size_t operator()(const closedData & x) const
+	//{
+	//	return (x.dir) | (x.bucket << 2) | (x.bucket << 7);
+	//}
 	std::size_t operator()(const closedData & x) const
 	{
-		return (x.dir) | (x.bucket << 2) | (x.bucket << 7);
+		std::size_t hash = 0;
+		hash = x.bucket;
+		hash = hash << 8;
+		hash = hash | x.depth;
+		hash = hash << 2;
+		hash = hash | x.dir;
+		return hash;
 	}
 };
 
@@ -524,9 +555,13 @@ void PEMM<state, action>::RemoveDuplicates(std::unordered_set<uint64_t> &states,
 		c.depth = depth;
 		c.dir = d.dir;
 
-		closedList &cd = closed[c];
-		if (cd.f == 0)
+		//closedList &cd = closed[c];
+		//if (cd.f == 0)
+		//	continue;
+		auto cdi = closed.find(c);
+		if (cdi == closed.end())
 			continue;
+		closedList &cd = closed[c];
 		rewind(cd.f);
 
 		const size_t bufferSize = 1024;
@@ -639,22 +674,24 @@ void PEMM<state, action>::ExpandNextFile()
 	Timer timer;
 	timer.StartTimer();
 
-	//for (int depth = 0; depth < d.gcost - 2; depth++)
-	//{
-	//	closedData c;
-	//	c.bucket = d.bucket;
-	//	c.depth = depth;
-	//	c.dir = d.dir;
+	std::cout << "\ncurrent best d: " << d << "\n";
+	for (int depth = 0; depth < d.gcost - 2; depth++)
+	{
+		closedData c;
+		c.bucket = d.bucket;
+		c.depth = depth;
+		c.dir = d.dir;
 
-	//	auto cdi = closed.find(c);
-	//	while (cdi != closed.end())
-	//	{
-	//		fclose(cdi->second.f);
-	//		cdi->second.f = 0;
-	//		closed.erase(cdi);
-	//		cdi = closed.find(c);
-	//	}
-	//}
+		auto cdi = closed.find(c);
+		while (cdi != closed.end())
+		{
+			std::cout << "permanat close: " << cdi->first << "\n";
+			fclose(cdi->second.f);
+			cdi->second.f = 0;
+			closed.erase(cdi);
+			cdi = closed.find(c);
+		}
+	}
 
 
 	std::unordered_set<uint64_t> states;
