@@ -674,7 +674,7 @@ void PEMM<state, action>::ExpandNextFile()
 	Timer timer;
 	timer.StartTimer();
 
-	std::cout << "\ncurrent best d: " << d << "\n";
+	//std::cout << "\ncurrent best d: " << d << "\n";
 	for (int depth = 0; depth < d.gcost - 2; depth++)
 	{
 		closedData c;
@@ -685,7 +685,7 @@ void PEMM<state, action>::ExpandNextFile()
 		auto cdi = closed.find(c);
 		while (cdi != closed.end())
 		{
-			std::cout << "permanat close: " << cdi->first << "\n";
+			//std::cout << "permanat close: " << cdi->first << "\n";
 			fclose(cdi->second.f);
 			cdi->second.f = 0;
 			closed.erase(cdi);
