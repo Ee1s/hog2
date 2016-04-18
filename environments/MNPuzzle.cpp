@@ -807,7 +807,7 @@ void MNPuzzle::GetStateFromHash(MNPuzzleState &s, uint64_t hash) const
 	// to ensure the right parity
 	int x = 0;
 	int loc1 = -1, loc2 = -1;
-	for (; x < 12; x++)
+	for (; x < count; x++)
 	{
 		if (s.puzzle[x] == -1)
 		{
@@ -816,7 +816,7 @@ void MNPuzzle::GetStateFromHash(MNPuzzleState &s, uint64_t hash) const
 			break;
 		}
 	}
-	for (; x < 12; x++)
+	for (; x < count; x++)
 	{
 		if (s.puzzle[x] == -1)
 		{
@@ -854,7 +854,7 @@ uint64_t MNPuzzle::GetStateHash(const MNPuzzleState &s) const
 		locs[x] = dual[x];
 	}
 	
-	uint32_t hashVal = 0;
+	uint64_t hashVal = 0;
 	int numEntriesLeft = s.puzzle.size();
 	
 	// compute the lexographical ranking of the locations
