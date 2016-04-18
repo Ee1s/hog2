@@ -189,8 +189,8 @@ PEMM<state, action>::PEMM(state &start, state &goal, const char *p1, const char 
 	:prefix1(p1), prefix2(p2), bestSolution(100), expanded(0)
 {
 
-	gDistBackward.resize(12);
-	gDistForward.resize(12);
+	gDistBackward.resize(120);
+	gDistForward.resize(120);
 
 	//(*bh_func)(start, goal, forward);
 	//(*bh_func)(goal, start, reverse);
@@ -291,10 +291,10 @@ std::string PEMM<state, action>::GetOpenName(const openData &d)
 template<class state, class action>
 openData PEMM<state, action>::GetBestFile()
 {
-	minGForward = 100;
-	minGBackward = 100;
-	minFForward = 100;
-	minFBackward = 100;
+	minGForward = 1000;
+	minGBackward = 1000;
+	minFForward = 1000;
+	minFBackward = 1000;
 	// actually do priority here
 	openData best = (open.begin())->first;
 	//return (open.begin())->first;
@@ -638,6 +638,24 @@ void PEMM<state, action>::ExpandNextFile()
 
 	Timer timer;
 	timer.StartTimer();
+
+	//for (int depth = 0; depth < d.gcost - 2; depth++)
+	//{
+	//	closedData c;
+	//	c.bucket = d.bucket;
+	//	c.depth = depth;
+	//	c.dir = d.dir;
+
+	//	auto cdi = closed.find(c);
+	//	while (cdi != closed.end())
+	//	{
+	//		fclose(cdi->second.f);
+	//		cdi->second.f = 0;
+	//		closed.erase(cdi);
+	//		cdi = closed.find(c);
+	//	}
+	//}
+
 
 	std::unordered_set<uint64_t> states;
 	ReadBucket(states, d);
