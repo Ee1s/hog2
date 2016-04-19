@@ -5,15 +5,15 @@ int PEMMMNPuzzle::GetBucket(const MNPuzzleState &s)
 	MNPuzzle puzzle(s.width, s.height);
 	uint64_t hash = puzzle.GetStateHash(s);
 	//std::cout << "state: " << s << " bucket: " << (int)(hash & 0x1F) <<"\n";
-	return hash & 0x7;
+	return hash & 0x3;
 }
 
 void PEMMMNPuzzle::GetBucketAndData(const MNPuzzleState &s, int &bucket, uint64_t &data)
 {
 	MNPuzzle puzzle(s.width, s.height);
 	uint64_t hash = puzzle.GetStateHash(s);
-	bucket = hash & 0x7;
-	data = hash >> 3;
+	bucket = hash & 0x3;
+	data = hash >> 2;
 	//std::cout << "state: " << s << " bucket: " << bucket << " data: " << data << "\n";
 
 }
@@ -22,7 +22,7 @@ void PEMMMNPuzzle::GetState(MNPuzzleState &s, int bucket, uint64_t data)
 {
 	//std::cout << "\nget state from data:"<<data <<" bucket:" <<bucket;
 	MNPuzzle puzzle(s.width, s.height);
-	uint64_t hash = (data << 3) | bucket;
+	uint64_t hash = (data << 2) | bucket;
 	//std::cout << " hash :" << hash << "\n";
 	puzzle.GetStateFromHash(s, hash);
 	//std::cout << "state: " << s << " bucket: " << bucket << " data: " << data << "\n";

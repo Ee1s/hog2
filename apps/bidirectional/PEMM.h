@@ -625,6 +625,11 @@ void PEMM<state, action>::ParallelExpandBucket(openData d, const std::unordered_
 		//for (int x = 0; x < 18; x++)
 		//Replaced by GetActions
 		GetState(tmp, d.bucket, values);
+
+		//openData dat;
+		//uint64_t rak;
+		//GetOpenData(tmp, d.dir, d.gcost, dat, rak);
+
 		std::vector<action> actions;
 		moreThanCube->GetActions(tmp, actions);
 		//std::cout << "get actions\n";
@@ -637,6 +642,9 @@ void PEMM<state, action>::ParallelExpandBucket(openData d, const std::unordered_
 			openData newData;
 			uint64_t newRank;
 			GetOpenData(tmp, d.dir, d.gcost + 1, newData, newRank);
+
+			//if (dat.hcost-newData.hcost > 1)
+			//	std::cout << "inconsistency!!!\n";
 
 			std::vector<uint64_t> &c = cache[newData];
 			c.push_back(newRank);
