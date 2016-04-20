@@ -50,9 +50,23 @@ static std::ostream &operator<<(std::ostream &out, const openData &d)
 
 struct openDataHash
 {
+	//std::size_t operator()(const openData & x) const
+	//{
+	//	return (x.dir) | (x.priority << 2) | (x.gcost << 8) | (x.hcost << 12) | (x.bucket << 20);
+	//}
 	std::size_t operator()(const openData & x) const
 	{
-		return (x.dir) | (x.priority << 2) | (x.gcost << 8) | (x.hcost << 12) | (x.bucket << 20);
+		std::size_t hash = 0;
+		hash = x.bucket;
+		hash = hash << 8;
+		hash = hash | x.hcost;
+		hash = hash << 8;
+		hash = hash | x.gcost;
+		hash = hash << 8;
+		hash = hash | x.priority;
+		hash = hash << 2;
+		hash = hash | x.dir;
+		return hash;
 	}
 };
 
@@ -68,11 +82,28 @@ static bool operator==(const closedData &a,const closedData &b)
 		return (a.dir == b.dir && a.depth == b.depth && a.bucket == b.bucket);
 	}
 
+static std::ostream &operator<<(std::ostream &out, const closedData &d)
+{
+	out << "[" << ((d.dir == kForward) ? "forward" : "backward") << ", depth:" << +d.depth;
+	out << ", b:" << +d.bucket << "]";
+	return out;
+}
+
 struct closedDataHash
 {
+	//std::size_t operator()(const closedData & x) const
+	//{
+	//	return (x.dir) | (x.bucket << 2) | (x.bucket << 7);
+	//}
 	std::size_t operator()(const closedData & x) const
 	{
-		return (x.dir) | (x.bucket << 2) | (x.bucket << 7);
+		std::size_t hash = 0;
+		hash = x.bucket;
+		hash = hash << 8;
+		hash = hash | x.depth;
+		hash = hash << 2;
+		hash = hash | x.dir;
+		return hash;
 	}
 };
 
@@ -189,8 +220,8 @@ PEMM<state, action>::PEMM(state &start, state &goal, const char *p1, const char 
 	:prefix1(p1), prefix2(p2), bestSolution(100), expanded(0)
 {
 
-	gDistBackward.resize(12);
-	gDistForward.resize(12);
+	gDistBackward.resize(120);
+	gDistForward.resize(120);
 
 	//(*bh_func)(start, goal, forward);
 	//(*bh_func)(goal, start, reverse);
@@ -291,10 +322,10 @@ std::string PEMM<state, action>::GetOpenName(const openData &d)
 template<class state, class action>
 openData PEMM<state, action>::GetBestFile()
 {
-	minGForward = 100;
-	minGBackward = 100;
-	minFForward = 100;
-	minFBackward = 100;
+	minGForward = 1000;
+	minGBackward = 1000;
+	minFForward = 1000;
+	minFBackward = 1000;
 	// actually do priority here
 	openData best = (open.begin())->first;
 	//return (open.begin())->first;
@@ -525,9 +556,13 @@ void PEMM<state, action>::RemoveDuplicates(std::unordered_set<uint64_t> &states,
 		c.depth = depth;
 		c.dir = d.dir;
 
-		closedList &cd = closed[c];
-		if (cd.f == 0)
+		//closedList &cd = closed[c];
+		//if (cd.f == 0)
+		//	continue;
+		auto cdi = closed.find(c);
+		if (cdi == closed.end())
 			continue;
+		closedList &cd = closed[c];
 		rewind(cd.f);
 
 		const size_t bufferSize = 1024;
@@ -591,6 +626,11 @@ void PEMM<state, action>::ParallelExpandBucket(openData d, const std::unordered_
 		//for (int x = 0; x < 18; x++)
 		//Replaced by GetActions
 		GetState(tmp, d.bucket, values);
+
+		//openData dat;
+		//uint64_t rak;
+		//GetOpenData(tmp, d.dir, d.gcost, dat, rak);
+
 		std::vector<action> actions;
 		moreThanCube->GetActions(tmp, actions);
 		//std::cout << "get actions\n";
@@ -603,6 +643,9 @@ void PEMM<state, action>::ParallelExpandBucket(openData d, const std::unordered_
 			openData newData;
 			uint64_t newRank;
 			GetOpenData(tmp, d.dir, d.gcost + 1, newData, newRank);
+
+			//if (dat.hcost-newData.hcost > 1)
+			//	std::cout << "inconsistency!!!\n";
 
 			std::vector<uint64_t> &c = cache[newData];
 			c.push_back(newRank);
@@ -639,6 +682,26 @@ void PEMM<state, action>::ExpandNextFile()
 
 	Timer timer;
 	timer.StartTimer();
+
+	//std::cout << "\ncurrent best d: " << d << "\n";
+	for (int depth = 0; depth < d.gcost - 2; depth++)
+	{
+		closedData c;
+		c.bucket = d.bucket;
+		c.depth = depth;
+		c.dir = d.dir;
+
+		auto cdi = closed.find(c);
+		while (cdi != closed.end())
+		{
+			//std::cout << "permanat close: " << cdi->first << "\n";
+			fclose(cdi->second.f);
+			cdi->second.f = 0;
+			closed.erase(cdi);
+			cdi = closed.find(c);
+		}
+	}
+
 
 	std::unordered_set<uint64_t> states;
 	ReadBucket(states, d);
