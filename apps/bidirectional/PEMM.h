@@ -378,7 +378,7 @@ void PEMM<state, action>::GetOpenData(const state &start, tSearchDirection dir, 
 	//d.hcost2 = (dir==kForward)?reverse.HCost(start, start):forward.HCost(start, start);
 	d.bucket = bucket;
 	//d.priority = d.gcost+d.hcost;
-	d.priority = std::max(d.gcost + d.hcost, d.gcost * 2);
+	d.priority = std::max(d.gcost + d.hcost, (int)(((double)d.gcost) * 1.5));
 }
 
 template<class state, class action>
@@ -456,7 +456,30 @@ template<class state, class action>
 bool PEMM<state, action>::CanTerminateSearch()
 {
 	int val;
-	if (bestSolution <= (val = std::max(currentC, std::max(minFForward, std::max(minFBackward, minGBackward + minGForward + 1)))))
+	//if (bestSolution <= (val = std::max(currentC, std::max(minFForward, std::max(minFBackward, minGBackward + minGForward + 1)))))
+	//{
+	//	printf("Done!\n");
+	//	printf("%llu nodes expanded\n", expanded);
+	//	printf("Forward Distribution:\n");
+	//	for (int x = 0; x < gDistForward.size(); x++)
+	//		if (gDistForward[x] != 0)
+	//			printf("%d\t%llu\n", x, gDistForward[x]);
+	//	printf("Backward Distribution:\n");
+	//	for (int x = 0; x < gDistBackward.size(); x++)
+	//		if (gDistBackward[x] != 0)
+	//			printf("%d\t%llu\n", x, gDistBackward[x]);
+	//	finished = true;
+	//	if (val == currentC)
+	//		printf("-Triggered by current priority\n");
+	//	if (val == minFForward)
+	//		printf("-Triggered by f in the forward direction\n");
+	//	if (val == minFBackward)
+	//		printf("-Triggered by f in the backward direction\n");
+	//	if (val == minGBackward + minGForward + 1)
+	//		printf("-Triggered by gforward+gbackward+1\n");
+	//	return true;
+	//}
+	if (bestSolution <= currentC)
 	{
 		printf("Done!\n");
 		printf("%llu nodes expanded\n", expanded);
@@ -468,16 +491,9 @@ bool PEMM<state, action>::CanTerminateSearch()
 		for (int x = 0; x < gDistBackward.size(); x++)
 			if (gDistBackward[x] != 0)
 				printf("%d\t%llu\n", x, gDistBackward[x]);
+
+		printf("Solution to return: %d\n", bestSolution);
 		finished = true;
-		if (val == currentC)
-			printf("-Triggered by current priority\n");
-		if (val == minFForward)
-			printf("-Triggered by f in the forward direction\n");
-		if (val == minFBackward)
-			printf("-Triggered by f in the backward direction\n");
-		if (val == minGBackward + minGForward + 1)
-			printf("-Triggered by gforward+gbackward+1\n");
-		return true;
 	}
 	return false;
 }

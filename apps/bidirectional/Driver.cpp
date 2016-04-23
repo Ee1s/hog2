@@ -225,23 +225,23 @@ int main(int argc, char* argv[])
 		c.ApplyAction(a, 4*3);
 
 		int which = 0;
-		//which = atoi(argv[2]);
-		//if (which < 10)
-		//	GetKorfInstance(a, which);
-		//else if (which == 19)
-		//{
-		//	GetSuperFlip(a);
-		//	// Any action will reduce this to 19 moves to solve
-		//	c.ApplyAction(a, 0);
-		//}
-		//else if (which == 20)
-		//{
-		//	GetSuperFlip(a);
-		//}
-		//else if (which > 20)
-		//{
-		//	GetDepth20(a, which-21);
-		//}
+		which = atoi(argv[2]);
+		if (which < 10)
+			GetKorfInstance(a, which);
+		else if (which == 19)
+		{
+			GetSuperFlip(a);
+			// Any action will reduce this to 19 moves to solve
+			c.ApplyAction(a, 0);
+		}
+		else if (which == 20)
+		{
+			GetSuperFlip(a);
+		}
+		else if (which > 20)
+		{
+			GetDepth20(a, which-21);
+		}
 		hprefix = argv[5];
 		Heuristic<RubiksState> forward;
 		Heuristic<RubiksState> reverse;
