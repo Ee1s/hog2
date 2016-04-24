@@ -507,7 +507,8 @@ void PEMM<state, action>::CheckSolution(std::unordered_map<openData, openList, o
 	for (const auto &s : currentOpen)
 	{
 		// Opposite direction, same bucket AND could be a solution (g+g >= C)
-		if (s.first.priority<=bestSolution && s.first.dir != d.dir && s.first.bucket == d.bucket &&
+		if (s.first.priority<=bestSolution && d.gcost + s.first.gcost < bestSolution
+			&& s.first.dir != d.dir && s.first.bucket == d.bucket &&
 			d.gcost + s.first.gcost >= currentC)// && d.hcost2 == s.first.hcost)
 		{
 			const size_t bufferSize = 128;
