@@ -11,6 +11,7 @@
 #include <iomanip>
 
 
+#define NOT_FOUND 100
 
 /*RubiksState is replaced by State
 since method BuildHeuristics depends on the run-time type of State,
@@ -181,6 +182,7 @@ protected:
 	int minFForward;
 	int minFBackward;
 	uint64_t expanded;
+	uint64_t expandedOnFirstSolution;
 	std::vector<uint64_t> gDistForward;
 	std::vector<uint64_t> gDistBackward;
 	std::mutex printLock;
@@ -217,7 +219,7 @@ protected:
 
 template<class state, class action>
 PEMM<state, action>::PEMM(state &start, state &goal, const char *p1, const char *p2, Heuristic<state>& f, Heuristic<state>& b, SearchEnvironment<state, action>* se)
-	:prefix1(p1), prefix2(p2), bestSolution(100), expanded(0)
+	:prefix1(p1), prefix2(p2), bestSolution(NOT_FOUND), expanded(0),expandedOnFirstSolution(0)
 {
 
 	gDistBackward.resize(120);
@@ -483,6 +485,7 @@ bool PEMM<state, action>::CanTerminateSearch()
 	{
 		printf("Done!\n");
 		printf("%llu nodes expanded\n", expanded);
+		printf("%llu nodes expanded when finding the first solution\n", expandedOnFirstSolution);
 		printf("Forward Distribution:\n");
 		for (int x = 0; x < gDistForward.size(); x++)
 			if (gDistForward[x] != 0)
@@ -506,9 +509,12 @@ void PEMM<state, action>::CheckSolution(std::unordered_map<openData, openList, o
 	//std::cout << "current Open size" << currentOpen.size() << "\n";
 	for (const auto &s : currentOpen)
 	{
+		if (s.first.gcost + s.first.hcost >= bestSolution)
+			continue;
+		if (s.first.gcost + d.gcost >= bestSolution)
+			continue;
 		// Opposite direction, same bucket AND could be a solution (g+g >= C)
-		if (s.first.priority<=bestSolution && d.gcost + s.first.gcost < bestSolution
-			&& s.first.dir != d.dir && s.first.bucket == d.bucket &&
+		if (s.first.dir != d.dir && s.first.bucket == d.bucket &&
 			d.gcost + s.first.gcost >= currentC)// && d.hcost2 == s.first.hcost)
 		{
 			const size_t bufferSize = 128;
@@ -530,12 +536,15 @@ void PEMM<state, action>::CheckSolution(std::unordered_map<openData, openList, o
 						//s.second.states.find(data) != s.second.states.end()
 						printf("\nFound solution gcost1 %d hcost1 %d gcost2 %d hcost2 %d\n", d.gcost,d.hcost, s.first.gcost,s.first.hcost);
 						printf("\nFound solution cost %d+%d=%d\n", d.gcost, s.first.gcost, d.gcost + s.first.gcost);
+						//this is the first solution found
+						if (bestSolution == NOT_FOUND)
+							expandedOnFirstSolution = expanded;
 						bestSolution = std::min(d.gcost + s.first.gcost, bestSolution);
 						printf("Current best solution: %d\n", bestSolution);
 						printLock.unlock();
 
-						if (CanTerminateSearch())
-							return;
+						//if (CanTerminateSearch())
+						//	return;
 					}
 				}
 			} while (numRead == bufferSize);
