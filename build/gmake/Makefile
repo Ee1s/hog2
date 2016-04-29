@@ -39,6 +39,7 @@ PROJECTS = \
   apps/3dmaps \
   apps/rubik \
   apps/bidirectional \
+  apps/WMM  \
   apps/voxel \
   apps/fling \
   apps/topspin \
@@ -94,6 +95,7 @@ PROJECTS_ALL = \
   apps/rubik \
   apps/fling \
   apps/bidirectional \
+  apps/WMM  \
   apps/voxel \
   apps/topspin \
   apps/stp \

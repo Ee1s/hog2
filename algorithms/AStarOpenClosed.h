@@ -66,6 +66,7 @@ class AStarOpenClosed {
 public:
 	AStarOpenClosed();
 	~AStarOpenClosed();
+	void SetCompareKey(CmpKey c) { compare = c; }
 	void Reset();
 	uint64_t AddOpenNode(const state &val, uint64_t hash, double g, double h, uint64_t parent=kTAStarNoNode);
 	uint64_t AddClosedNode(state &val, uint64_t hash, double g, double h, uint64_t parent=kTAStarNoNode);
@@ -92,6 +93,7 @@ private:
 	typedef __gnu_cxx::hash_map<uint64_t, uint64_t, AHash64> IndexTable;
 	IndexTable table;
 	std::vector<dataStructure > elements;
+	CmpKey compare;
 };
 
 
@@ -282,7 +284,7 @@ bool AStarOpenClosed<state, CmpKey, dataStructure>::HeapifyUp(unsigned int index
 {
 	if (index == 0) return false;
 	int parent = (index-1)/2;
-	CmpKey compare;
+
 	
 	if (compare(elements[theHeap[parent]], elements[theHeap[index]]))
 	{
@@ -300,7 +302,6 @@ bool AStarOpenClosed<state, CmpKey, dataStructure>::HeapifyUp(unsigned int index
 template<typename state, typename CmpKey, class dataStructure>
 void AStarOpenClosed<state, CmpKey, dataStructure>::HeapifyDown(unsigned int index)
 {
-	CmpKey compare;
 	unsigned int child1 = index*2+1;
 	unsigned int child2 = index*2+2;
 	int which;

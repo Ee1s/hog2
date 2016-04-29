@@ -380,7 +380,10 @@ void PEMM<state, action>::GetOpenData(const state &start, tSearchDirection dir, 
 	//d.hcost2 = (dir==kForward)?reverse.HCost(start, start):forward.HCost(start, start);
 	d.bucket = bucket;
 	//d.priority = d.gcost+d.hcost;
-	d.priority = std::max(d.gcost + d.hcost, (int)(((double)d.gcost) * 1.5));
+	if(dir == kForward)
+		d.priority = std::max(d.gcost + d.hcost, (int)(((double)d.gcost) * 1.5));
+	if (dir == kBackward)
+		d.priority = std::max(d.gcost + d.hcost, (int)(((double)d.gcost) * 3.0));
 }
 
 template<class state, class action>
