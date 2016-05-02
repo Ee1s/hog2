@@ -28,8 +28,8 @@ struct WMMCompare {
 //		double p2 = i2.g+i2.h;
 		if (fequal(p1, p2))
 		{
-			//return (fgreater(i1.g, i2.g)); // low g-cost over high
-			return (fless(i1.g, i2.g)); // high g-cost over low
+			return (fgreater(i1.g, i2.g)); // low g-cost over high
+			//return (fless(i1.g, i2.g)); // high g-cost over low
 		}
 		return (fgreater(p1, p2)); // low priority over high
 	}
@@ -286,7 +286,8 @@ void WMM<state, action, environment, priorityQueue>::Expand(priorityQueue &curre
 						if (fless(current.Lookup(nextID).g+edgeCost + opposite.Lookup(reverseLoc).g, currentCost))
 						{
 							// TODO: store current solution
-							printf("Potential updated solution found, cost: %1.2f + %1.2f = %1.2f\n",
+							printf("WMM(%1.2f,%1.2f) Potential updated solution found, cost: %1.2f + %1.2f = %1.2f\n",
+								lambda1,lambda2,
 								   current.Lookup(nextID).g+edgeCost,
 								   opposite.Lookup(reverseLoc).g,
 								   current.Lookup(nextID).g+edgeCost+opposite.Lookup(reverseLoc).g);
@@ -313,7 +314,8 @@ void WMM<state, action, environment, priorityQueue>::Expand(priorityQueue &curre
 					if (fless(current.Lookup(nextID).g+edgeCost + opposite.Lookup(reverseLoc).g, currentCost))
 					{
 						// TODO: store current solution
-						printf("Potential solution found, cost: %1.2f + %1.2f = %1.2f\n",
+						printf("WMM(%1.2f,%1.2f) Potential solution found, cost: %1.2f + %1.2f = %1.2f\n",
+							lambda1,lambda2,
 							   current.Lookup(nextID).g+edgeCost,
 							   opposite.Lookup(reverseLoc).g,
 							   current.Lookup(nextID).g+edgeCost+opposite.Lookup(reverseLoc).g);
