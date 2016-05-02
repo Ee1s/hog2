@@ -34,15 +34,17 @@ TemplateAStar<xyLoc, tDirection, MapEnvironment> backward;
 
 ZeroHeuristic<xyLoc> *z = new ZeroHeuristic<xyLoc>;
 
-lambdaPriorityQueue<xyLoc> fward(1.5);
-lambdaPriorityQueue<xyLoc> bward(1.5);
-WMM<xyLoc, tDirection, MapEnvironment, lambdaPriorityQueue<xyLoc>> wmm(1.5,1.5,fward,bward);
-//TemplateAStar<xyLoc, tDirection, MapEnvironment> compare;
-lambdaPriorityQueue<xyLoc> mmfward(2.0);
-lambdaPriorityQueue<xyLoc> mmbward(2.0);
-WMM<xyLoc, tDirection, MapEnvironment, lambdaPriorityQueue<xyLoc>> compare(2.0, 2.0, fward, bward);
-bool wmmSearchRunning = false;
-bool compareSearchRunning = false;
+lambdaPriorityQueue<xyLoc> fward(2.0);
+lambdaPriorityQueue<xyLoc> bward(2.0);
+WMM<xyLoc, tDirection, MapEnvironment, lambdaPriorityQueue<xyLoc>> mm(2.0,2.0,fward,bward);
+
+lambdaPriorityQueue<xyLoc> wfward(1.5);
+lambdaPriorityQueue<xyLoc> wbward(1.5);
+WMM<xyLoc, tDirection, MapEnvironment, lambdaPriorityQueue<xyLoc>> wmmcompare(1.5, 1.5, wfward, wbward);
+
+//TemplateAStar<xyLoc, tDirection, MapEnvironment> wmmcompare;
+bool mmSearchRunning = false;
+bool wmmcompareSearchRunning = false;
 bool searchRan = false;
 std::vector<xyLoc> path;
 std::vector<xyLoc> goalPath;
@@ -102,17 +104,17 @@ void MyWindowHandler(unsigned long windowID, tWindowEventType eType)
 		
 		delete map;
 		delete me;
-		//map = new Map("../../hog2/maps/dao/lak308d.map");
-		//map = new Map("../../hog2/maps/da2/ht_chantry.map");
+		//map = new Map("/Users/nathanst/hog2/maps/dao/lak308d.map");
+		//map = new Map("/Users/nathanst/hog2/maps/da2/ht_chantry.map");
 		//map = new Map("/Users/nathanst/hog2/maps/da2/w_woundedcoast.map");
 		
-		//map = new Map("../../hog2/maps/random/random512-35-6.map");
-		//map = new Map("../../hog2/maps/da2/lt_backalley_g.map");
-		//map = new Map("../../hog2/maps/bgmaps/AR0011SR.map");
+		//map = new Map("/Users/nathanst/hog2/maps/random/random512-35-6.map");
+		//map = new Map("/Users/nathanst/hog2/maps/da2/lt_backalley_g.map");
+		//map = new Map("/Users/nathanst/hog2/maps/bgmaps/AR0011SR.map");
 		map = new Map("/home/jingwei/Desktop/Shared/hog2/maps/bgmaps/AR0012SR.map");
-		//map = new Map("../../hog2/maps/rooms/8room_000.map");
-		//map = new Map("../../hog2/maps/mazes/maze512-16-0.map");
-		//map = new Map("../../hog2/maps/dao/orz107d.map");
+		//map = new Map("/Users/nathanst/hog2/maps/rooms/8room_000.map");
+		//map = new Map("/Users/nathanst/hog2/maps/mazes/maze512-16-0.map");
+		//map = new Map("/Users/nathanst/hog2/maps/dao/orz107d.map");
 		map->SetTileSet(kWinter);
 		me = new MapEnvironment(map);
 		me->SetDiagonalCost(1.5);
@@ -233,30 +235,30 @@ void MyFrameHandler(unsigned long windowID, unsigned int viewport, void *)
 
 	for (int x = 0; x < gStepsPerFrame; x++)
 	{
-		if (wmmSearchRunning)
+		if (mmSearchRunning)
 		{
-			wmmSearchRunning = !wmm.DoSingleSearchStep(path);
-			if (!wmmSearchRunning)
-				printf("WMM: %llu nodes expanded\n", wmm.GetNodesExpanded());
+			mmSearchRunning = !mm.DoSingleSearchStep(path);
+			if (!mmSearchRunning)
+				printf("MM*: %llu nodes expanded\n", mm.GetNodesExpanded());
 		}
 	}
 	for (int x = 0; x < gStepsPerFrame; x++)
 	{
-		if (compareSearchRunning)
+		if (wmmcompareSearchRunning)
 		{
-			compareSearchRunning = !compare.DoSingleSearchStep(path);
-			if (!compareSearchRunning)
+			wmmcompareSearchRunning = !wmmcompare.DoSingleSearchStep(path);
+			if (!wmmcompareSearchRunning)
 			{
-				printf("MM: %llu nodes expanded const %1.1f\n", compare.GetNodesExpanded(), me->GetPathLength(path));
+				printf("WMM: %llu nodes expanded const %1.1f\n", wmmcompare.GetNodesExpanded(), me->GetPathLength(path));
 			}
 		}
 	}
 	if (searchRan)
 	{
 		if (viewport == 0)
-			wmm.OpenGLDraw();
+			mm.OpenGLDraw();
 		else if (viewport == 1)
-			compare.OpenGLDraw();
+			wmmcompare.OpenGLDraw();
 	}
 
 	if (recording && viewport == GetNumPorts(windowID)-1)
@@ -332,29 +334,26 @@ bool MyClickHandler(unsigned long windowID, int, int, point3d loc, tButtonType b
 //				goal.x = 510;
 //				goal.y = 208;
 				
-//				start.x = 75;
-//				start.y = 33;
-//				goal.x = 93;//78;
-//				goal.y = 116;//132-10;
+				//start.x = 37;
+				//start.y = 61;
+				//goal.x = 101;//78;
+				//goal.y = 101;//132-10;
 				
 //				forward.GetPath(me,
 //								{static_cast<uint16_t>(goal.x-17),
 //									static_cast<uint16_t>(goal.y+22)}, goal, goalPath);
 //				recording = true;
-				start.x = 37;
-				start.y = 61;
-				goal.x = 101;
-				goal.y = 101;
+				
 				
 				mouseTracking = false;
 				SetupMapOverlay();
 				SetNumPorts(windowID, 2);
-				//compare.SetHeuristic(me);
-				compare.InitializeSearch(me, start, goal,me,me, path);
-				//wmm.InitializeSearch(me, start, goal, z, z, path);
-				wmm.InitializeSearch(me, start, goal, me, me, path);
-				wmmSearchRunning = true;
-				compareSearchRunning = true;
+				//wmmcompare.SetHeuristic(me);
+				wmmcompare.InitializeSearch(me, start, goal,me,me, path);
+				//mm.InitializeSearch(me, start, goal, z, z, path);
+				mm.InitializeSearch(me, start, goal, me, me, path);
+				mmSearchRunning = true;
+				wmmcompareSearchRunning = true;
 				searchRan = true;
 				return true;
 			}
@@ -705,12 +704,12 @@ void AnalyzeProblem(Map *m, Experiment e)
 	double optimal;
 	forward.GetClosedListGCost(goal, optimal);
 
-	compare.GetPath(me, start, goal,me,me, path);
-	printf("A* path length: %1.2f\t", me->GetPathLength(path));
-	wmm.GetPath(me, start, goal, me, me, path);
+	wmmcompare.GetPath(me, start, goal,me,me, path);
+	printf("WMM path length: %1.2f\t", me->GetPathLength(path));
+	mm.GetPath(me, start, goal, me, me, path);
 	printf("MM path length: %1.2f\n", me->GetPathLength(path));
 
-	printf("A*: %llu\tMM: %llu\t", compare.GetNodesExpanded(), wmm.GetNodesExpanded());
+	printf("WMM: %llu\tMM: %llu\t", wmmcompare.GetNodesExpanded(), mm.GetNodesExpanded());
 	// full state space
 	{
 		counts.resize(0);
@@ -746,15 +745,15 @@ void AnalyzeProblem(Map *m, Experiment e)
 	{
 		counts.resize(0);
 		counts.resize(10);
-		for (int x = 0; x < compare.GetNumForwardItems(); x++)
+		for (int x = 0; x < wmmcompare.GetNumForwardItems(); x++)
 		{
-			if (compare.GetForwardItem(x).where == kClosedList)
-				counts[GetLocationClassification(compare.GetForwardItem(x).data, optimal)]++;
+			if (wmmcompare.GetForwardItem(x).where == kClosedList)
+				counts[GetLocationClassification(wmmcompare.GetForwardItem(x).data, optimal)]++;
 		}
-		for (int x = 0; x < compare.GetNumBackwardItems(); x++)
+		for (int x = 0; x < wmmcompare.GetNumBackwardItems(); x++)
 		{
-			if (compare.GetBackwardItem(x).where == kClosedList)
-				counts[GetLocationClassification(compare.GetBackwardItem(x).data, optimal)]++;
+			if (wmmcompare.GetBackwardItem(x).where == kClosedList)
+				counts[GetLocationClassification(wmmcompare.GetBackwardItem(x).data, optimal)]++;
 		}
 		for (int x = 0; x < counts.size(); x++)
 		{
@@ -777,15 +776,15 @@ void AnalyzeProblem(Map *m, Experiment e)
 	{
 		counts.resize(0);
 		counts.resize(10);
-		for (int x = 0; x < wmm.GetNumForwardItems(); x++)
+		for (int x = 0; x < mm.GetNumForwardItems(); x++)
 		{
-			if (wmm.GetForwardItem(x).where == kClosedList)
-				counts[GetLocationClassification(wmm.GetForwardItem(x).data, optimal)]++;
+			if (mm.GetForwardItem(x).where == kClosedList)
+				counts[GetLocationClassification(mm.GetForwardItem(x).data, optimal)]++;
 		}
-		for (int x = 0; x < wmm.GetNumBackwardItems(); x++)
+		for (int x = 0; x < mm.GetNumBackwardItems(); x++)
 		{
-			if (wmm.GetBackwardItem(x).where == kClosedList)
-				counts[GetLocationClassification(wmm.GetBackwardItem(x).data, optimal)]++;
+			if (mm.GetBackwardItem(x).where == kClosedList)
+				counts[GetLocationClassification(mm.GetBackwardItem(x).data, optimal)]++;
 		}
 		for (int x = 0; x < counts.size(); x++)
 		{
