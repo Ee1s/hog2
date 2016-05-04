@@ -304,7 +304,7 @@ int main(int argc, char* argv[])
 	//}
 	else if (strcmp(argv[1], "-mnpuzzle4") == 0)
 	{
-		hprefix = argv[5];
+		//hprefix = argv[5];
 		int sz = 4;
 		MNPuzzleState start(sz, sz);
 		MNPuzzleState goal(sz, sz);
@@ -313,18 +313,12 @@ int main(int argc, char* argv[])
 		start.Reset();
 		goal.Reset();
 
-		GetMNPuzzleInstance(atoi(argv[2]), start);
-		//std::vector<slideDir> actions;
-		//srand(time(0));
-		//for (int i = 0; i < 10; i++)
-		//{
-		//	puzzle.GetActions(start, actions);
-		//	puzzle.ApplyAction(start, actions[rand()%actions.size()]);
-		//}
-		//Heuristic<MNPuzzleState> forward;
-		//Heuristic<MNPuzzleState> reverse;
-		//BuildHeuristics(start, goal, forward, sz);
-		//BuildHeuristics(goal, start, reverse, sz);
+		int low = 1;
+		int high = 100;
+
+		low = atoi(argv[2]);
+		high = atoi(argv[3]);
+
 
 		MNPuzzle forward(sz, sz);
 		MNPuzzle reverse(sz, sz);
@@ -335,10 +329,17 @@ int main(int argc, char* argv[])
 
 		PEMMMNPuzzle<MNPuzzle> *searcher;
 
-		std::cout << "Start: " << start << std::endl;
-		std::cout << "Goal: " << goal << std::endl;
-		searcher = new PEMMMNPuzzle<MNPuzzle>(start, goal, argv[3], argv[4], forward, reverse, &puzzle);
-		searcher->FindAPath();
+		for (int i = low - 1; i < high; i++)
+		{
+			std::cout << "\n problem" << i << "*********************\n";
+			GetMNPuzzleInstance(i, start);
+			std::cout << "Start: " << start << std::endl;
+			std::cout << "Goal: " << goal << std::endl;
+			searcher = new PEMMMNPuzzle<MNPuzzle>(start, goal, argv[4], argv[4], forward, reverse, &puzzle);
+			searcher->FindAPath();
+			delete searcher;
+		}
+
 	}
 	else {
 		InstallHandlers();
@@ -859,17 +860,6 @@ void GetMNPuzzleInstance(int which, MNPuzzleState &s)
 {
 	int states[110][16] =
 	{
-		//easy ones
-		{ 4, 1, 2, 3, 9, 8, 6, 7, 12, 5, 10, 11, 13, 0, 14, 15 },
-		{ 4, 1, 2, 3, 5, 6, 10, 7, 8, 9, 14, 11, 12, 0, 13, 15 },
-		{ 4, 1, 2, 3, 8, 0, 6, 7, 9, 5, 10, 11, 12, 13, 14, 15 },
-		{ 1, 2, 6, 3, 4, 5, 10, 7, 8, 9, 11, 15, 12, 13, 14, 0 },
-		{ 4, 1, 2, 3, 8, 0, 6, 7, 9, 5, 10, 11, 12, 13, 14, 15 },
-		{ 5, 4, 2, 3, 1, 0, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 },
-		{ 1, 2, 3, 7, 4, 5, 6, 11, 8, 9, 14, 10, 12, 0, 13, 15 },
-		{ 4, 1, 2, 3, 5, 6, 7, 0, 8, 9, 10, 11, 12, 13, 14, 15 },
-		{ 4, 1, 2, 3, 5, 6, 7, 0, 8, 9, 10, 11, 12, 13, 14, 15 },
-		{ 1, 5, 2, 3, 4, 9, 6, 7, 0, 13, 10, 11, 8, 12, 14, 15 },
 		//std test cases
 		{ 14, 13, 15, 7, 11, 12, 9, 5, 6, 0, 2, 1, 4, 8, 10, 3 },
 		{ 13, 5, 4, 10, 9, 12, 8, 14, 2, 3, 7, 1, 0, 15, 11, 6 },
@@ -970,7 +960,18 @@ void GetMNPuzzleInstance(int which, MNPuzzleState &s)
 		{ 9, 14, 5, 7, 8, 15, 1, 2, 10, 4, 13, 6, 12, 0, 11, 3 },
 		{ 0, 11, 3, 12, 5, 2, 1, 9, 8, 10, 14, 15, 7, 4, 13, 6 },
 		{ 7, 15, 4, 0, 10, 9, 2, 5, 12, 11, 13, 6, 1, 3, 14, 8 },
-		{ 11, 4, 0, 8, 6, 10, 5, 13, 12, 7, 14, 3, 1, 2, 9, 15 }
+		{ 11, 4, 0, 8, 6, 10, 5, 13, 12, 7, 14, 3, 1, 2, 9, 15 },
+			//easy ones
+		{ 4, 1, 2, 3, 9, 8, 6, 7, 12, 5, 10, 11, 13, 0, 14, 15 },
+		{ 4, 1, 2, 3, 5, 6, 10, 7, 8, 9, 14, 11, 12, 0, 13, 15 },
+		{ 4, 1, 2, 3, 8, 0, 6, 7, 9, 5, 10, 11, 12, 13, 14, 15 },
+		{ 1, 2, 6, 3, 4, 5, 10, 7, 8, 9, 11, 15, 12, 13, 14, 0 },
+		{ 4, 1, 2, 3, 8, 0, 6, 7, 9, 5, 10, 11, 12, 13, 14, 15 },
+		{ 5, 4, 2, 3, 1, 0, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 },
+		{ 1, 2, 3, 7, 4, 5, 6, 11, 8, 9, 14, 10, 12, 0, 13, 15 },
+		{ 4, 1, 2, 3, 5, 6, 7, 0, 8, 9, 10, 11, 12, 13, 14, 15 },
+		{ 4, 1, 2, 3, 5, 6, 7, 0, 8, 9, 10, 11, 12, 13, 14, 15 },
+		{ 1, 5, 2, 3, 4, 9, 6, 7, 0, 13, 10, 11, 8, 12, 14, 15 }
 	};
 	for (int i = 0; i < 16; i++)
 	{
