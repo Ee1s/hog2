@@ -2,10 +2,10 @@
 #define PEMM_RUBIK_H
 #include "PEMM.h"
 
-class PEMMRubik : public PEMM<RubiksState, RubiksAction> {
+class PEMMRubik : public PEMM<RubiksState, RubiksAction, Heuristic<RubiksState>> {
 public:
 	PEMMRubik(RubiksState &start, RubiksState &goal, const char *p1, const char *p2, Heuristic<RubiksState> f, Heuristic<RubiksState> b, RubiksCube* se)
-		: PEMM<RubiksState, RubiksAction>(start, goal, p1, p2, f, b, se)
+		: PEMM<RubiksState, RubiksAction, Heuristic<RubiksState>>(start, goal, p1, p2, f, b, se)
 	{
 	}
 

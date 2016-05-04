@@ -1,33 +1,114 @@
 #include "PEMMMNPuzzle.h"
 
-int PEMMMNPuzzle::GetBucket(const MNPuzzleState &s)
+void SlidingTilePuzzle::GetRankFromState(const MNPuzzleState & state, uint64_t & rank)
 {
-	MNPuzzle puzzle(s.width, s.height);
-	uint64_t hash = puzzle.GetStateHash(s);
-	//std::cout << "state: " << s << " bucket: " << (int)(hash & 0x1F) <<"\n";
-	return hash & 0x3;
+	//make a copy of the state
+	MNPuzzleState Pi(state);
+	int size = width*height;
+	//caculate Pi^-1
+	std::vector<int> dual;
+	dual.resize(size);
+	for (int i = 0; i < size; i++)
+	{
+		dual[Pi.puzzle[i]] = i;
+	}
+	rank = 0;
+	int s = 0;
+	int tmp = 0;
+	for (int n = size; n > 0; n--)
+	{
+		s = Pi.puzzle[n - 1];
+		//swap Pi[n-1], Pi[Pi^-1[n-1]]
+		tmp = Pi.puzzle[n - 1];
+		Pi.puzzle[n - 1] = Pi.puzzle[dual[n - 1]];
+		Pi.puzzle[dual[n - 1]] = tmp;
+		//swap Pi^-1[s], Pi^-1[n-1]
+		tmp = dual[s];
+		dual[s] = dual[n - 1];
+		dual[n - 1] = tmp;
+
+		rank += s*Factorial(n - 1);
+	}
+}
+void SlidingTilePuzzle::GetStateFromRank(MNPuzzleState & state, const uint64_t & rank)
+{
+	state = MNPuzzleState(width, height);
+	state.Reset();
+	int s = 0;
+	uint64_t r = rank;
+	for (int n = width*height; n > 0; n--)
+	{
+		s = r / Factorial(n - 1);
+		r = r % Factorial(n - 1);
+		//swap state.puzzle[index] with state.puzzle[n-1]
+		int tmp = state.puzzle[n - 1];
+		state.puzzle[n - 1] = state.puzzle[s];
+		state.puzzle[s] = tmp;
+	}
+	for (int i = 0; i < width*height; i++)
+		if (state.puzzle[i] == 0)
+		{
+			state.blank = i;
+			break;
+		}
 }
 
-void PEMMMNPuzzle::GetBucketAndData(const MNPuzzleState &s, int &bucket, uint64_t &data)
+uint64_t Factorial(int val)
 {
-	MNPuzzle puzzle(s.width, s.height);
-	uint64_t hash = puzzle.GetStateHash(s);
-	bucket = hash & 0x3;
-	data = hash >> 2;
-	//std::cout << "state: " << s << " bucket: " << bucket << " data: " << data << "\n";
-
+	static uint64_t table[21] =
+	{ 1ll, 1ll, 2ll, 6ll, 24ll, 120ll, 720ll, 5040ll, 40320ll, 362880ll, 3628800ll, 39916800ll, 479001600ll,
+		6227020800ll, 87178291200ll, 1307674368000ll, 20922789888000ll, 355687428096000ll,
+		6402373705728000ll, 121645100408832000ll, 2432902008176640000ll };
+	if (val > 20)
+		return (uint64_t)-1;
+	return table[val];
 }
 
-void PEMMMNPuzzle::GetState(MNPuzzleState &s, int bucket, uint64_t data)
+int ManhattanDistanceHeuristic::GetHCost(const MNPuzzleState& s)
 {
-	//std::cout << "\nget state from data:"<<data <<" bucket:" <<bucket;
-	MNPuzzle puzzle(s.width, s.height);
-	uint64_t hash = (data << 2) | bucket;
-	//std::cout << " hash :" << hash << "\n";
-	puzzle.GetStateFromHash(s, hash);
-	//std::cout << "state: " << s << " bucket: " << bucket << " data: " << data << "\n";
+	int hcost = 0;
+	int xdiff = 0;
+	int ydiff = 0;
+	int size = s.puzzle.size();
+	for (int i = 0; i < size; i++)
+	{
+		for (int j = 0; j < size; j++)
+		{
+			if (goal.puzzle[j] == s.puzzle[i] && goal.puzzle[j] != 0)
+			{
+				ydiff = j / s.width > i / s.width ? (j / s.width - i / s.width) : (i / s.width - j / s.width);
+				xdiff = j%s.width > i%s.width ? (j%s.width - i%s.width) : (i%s.width - j%s.width);
+				hcost += xdiff + ydiff;
+				break;
+			}
+		}
+
+	}
+	return hcost;
 }
 
+int ManhattanDistanceHeuristic::HCost(const MNPuzzleState& s1, const MNPuzzleState& s2)
+{
+	int hcost = 0;
+	int xdiff = 0;
+	int ydiff = 0;
+	int size = s1.puzzle.size();
+	for (int i = 0; i < size; i++)
+	{
+		for (int j = 0; j < size; j++)
+		{
+			if (s2.puzzle[j] == s1.puzzle[i] && s2.puzzle[j] != 0)
+			{
+				ydiff = j / s1.width > i / s1.width ? (j / s1.width - i / s1.width) : (i / s1.width - j / s1.width);
+				xdiff = j%s1.width > i%s1.width ? (j%s1.width - i%s1.width) : (i%s1.width - j%s1.width);
+				hcost += xdiff + ydiff;
+				break;
+			}
+		}
+
+	}
+	return hcost;
+}
 
 //
 bool MNPuzzlePDB::Load(const char *prefix)

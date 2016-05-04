@@ -104,213 +104,210 @@ int main(int argc, char* argv[])
 	{
 		BFS();
 	}
-	else if (argc > 1 && strcmp(argv[1], "-pancake") == 0)
-	{
-		//MMPancake::MM();
-		hprefix = argv[5];
-		PancakePuzzleState start(13);
-		PancakePuzzleState goal(13);
+	//else if (argc > 1 && strcmp(argv[1], "-pancake") == 0)
+	//{
+	//	//MMPancake::MM();
+	//	hprefix = argv[5];
+	//	PancakePuzzleState start(13);
+	//	PancakePuzzleState goal(13);
 
-		Heuristic<PancakePuzzleState> forward;
-		Heuristic<PancakePuzzleState> reverse;
-		BuildHeuristics(3, start, goal, forward);
-		BuildHeuristics(3, goal, start, reverse);
+	//	Heuristic<PancakePuzzleState> forward;
+	//	Heuristic<PancakePuzzleState> reverse;
+	//	BuildHeuristics(3, start, goal, forward);
+	//	BuildHeuristics(3, goal, start, reverse);
 
-		PancakePuzzle puzzle(13);
-		PEMMPancake *searcher;
-		//searcher->FindAPath();
-		//for (int instance = 69; instance < 100; instance++)
-		//{
-		//	GetInstance(instance, start);
-		//	goal.Reset();
-		//	std::cout << "Start: " << start << std::endl;
-		//	std::cout << "Goal: " << goal << std::endl;
-		//	searcher = new PEMMPancake(start, goal, argv[3], argv[4], forward, reverse, &puzzle);
-		//	searcher->FindAPath();
-		//	delete searcher;
-		//}
-		start.Reset();
-		std::vector<PancakePuzzleAction> actions;
-		puzzle.GetActions(start, actions);
-		puzzle.ApplyAction(start, actions[0]);
-		puzzle.ApplyAction(start, actions[1]);
-		puzzle.ApplyAction(start, actions[2]);
-		puzzle.ApplyAction(start, actions[3]);
-		puzzle.ApplyAction(start, actions[4]);
-		goal.Reset();
-		std::cout << "Start: " << start << std::endl;
-		std::cout << "Goal: " << goal << std::endl;
-		searcher = new PEMMPancake(start, goal, argv[3], argv[4], forward, reverse, &puzzle);
-		searcher->FindAPath();
-	}
-	else if (strcmp(argv[1], "-pida") == 0)
-	{
-		if (argc <= 5)
-		{
-			printf("Usage:\n%s -pida <problem> <tmpdir1 <tmpdir2> <heuristicdir>\n", argv[0]);
-			exit(0);
-		}
-		RubiksState a, b;
-		RubiksCube c;
-		b.Reset();
+	//	PancakePuzzle puzzle(13);
+	//	PEMMPancake *searcher;
+	//	//searcher->FindAPath();
+	//	//for (int instance = 69; instance < 100; instance++)
+	//	//{
+	//	//	GetInstance(instance, start);
+	//	//	goal.Reset();
+	//	//	std::cout << "Start: " << start << std::endl;
+	//	//	std::cout << "Goal: " << goal << std::endl;
+	//	//	searcher = new PEMMPancake(start, goal, argv[3], argv[4], forward, reverse, &puzzle);
+	//	//	searcher->FindAPath();
+	//	//	delete searcher;
+	//	//}
+	//	start.Reset();
+	//	std::vector<PancakePuzzleAction> actions;
+	//	puzzle.GetActions(start, actions);
+	//	puzzle.ApplyAction(start, actions[0]);
+	//	puzzle.ApplyAction(start, actions[1]);
+	//	puzzle.ApplyAction(start, actions[2]);
+	//	puzzle.ApplyAction(start, actions[3]);
+	//	puzzle.ApplyAction(start, actions[4]);
+	//	goal.Reset();
+	//	std::cout << "Start: " << start << std::endl;
+	//	std::cout << "Goal: " << goal << std::endl;
+	//	searcher = new PEMMPancake(start, goal, argv[3], argv[4], forward, reverse, &puzzle);
+	//	searcher->FindAPath();
+	//}
+	//else if (strcmp(argv[1], "-pida") == 0)
+	//{
+	//	if (argc <= 5)
+	//	{
+	//		printf("Usage:\n%s -pida <problem> <tmpdir1 <tmpdir2> <heuristicdir>\n", argv[0]);
+	//		exit(0);
+	//	}
+	//	RubiksState a, b;
+	//	RubiksCube c;
+	//	b.Reset();
 
-		int which = 0;
-		which = atoi(argv[2]);
-		if (which < 10)
-			GetKorfInstance(a, which);
-		else if (which == 19)
-		{
-			GetSuperFlip(a);
-			// Any action will reduce this to 19 moves to solve
-			c.ApplyAction(a, 0);
-		}
-		else if (which == 20)
-		{
-			GetSuperFlip(a);
-		}
-		MM::CompareIDA(a, b, argv[3], argv[4], argv[5]);
-	}
-	else if (strcmp(argv[1], "-mm0") == 0)
-	{
-		if (argc <= 4)
-		{
-			printf("Usage:\n%s -mm0 <problem> <tmpdir1 <tmpdir2>\n", argv[0]);
-			exit(0);
-		}
-		RubiksState a, b;
-		RubiksCube c;
-		b.Reset();
-		
-		int which = 0;
-		which = atoi(argv[2]);
-		if (which < 10)
-			GetKorfInstance(a, which);
-		else if (which == 19)
-		{
-			GetSuperFlip(a);
-			// Any action will reduce this to 19 moves to solve
-			c.ApplyAction(a, 0);
-		}
-		else if (which == 20)
-		{
-			GetSuperFlip(a);
-		}
-		MM0::MM0(a, b, argv[3], argv[4]);
-	}
-	else if (strcmp(argv[1], "-mm") == 0)
-	{
-		if (argc <= 5)
-		{
-			printf("Usage:\n%s -mm <problem> <tmpdir1 <tmpdir2> <heuristicdir>\n", argv[0]);
-			exit(0);
-		}
-		RubiksState a, b;
-		RubiksCube c;
-		b.Reset();
-		// solution depth 12
-		c.ApplyAction(a, 0*3);
-		c.ApplyAction(a, 1*3);
-		c.ApplyAction(a, 2*3);
-		c.ApplyAction(a, 3*3);
-		c.ApplyAction(a, 4*3);
-		c.ApplyAction(a, 5*3);
-		c.ApplyAction(a, 4*3);
-		c.ApplyAction(a, 3*3);
-		c.ApplyAction(a, 2*3);
-		c.ApplyAction(a, 1*3);
-		c.ApplyAction(a, 0*3);
-		c.ApplyAction(a, 1*3);
-		c.ApplyAction(a, 2*3);
-		c.ApplyAction(a, 3*3);
-		c.ApplyAction(a, 4*3);
+	//	int which = 0;
+	//	which = atoi(argv[2]);
+	//	if (which < 10)
+	//		GetKorfInstance(a, which);
+	//	else if (which == 19)
+	//	{
+	//		GetSuperFlip(a);
+	//		// Any action will reduce this to 19 moves to solve
+	//		c.ApplyAction(a, 0);
+	//	}
+	//	else if (which == 20)
+	//	{
+	//		GetSuperFlip(a);
+	//	}
+	//	MM::CompareIDA(a, b, argv[3], argv[4], argv[5]);
+	//}
+	//else if (strcmp(argv[1], "-mm0") == 0)
+	//{
+	//	if (argc <= 4)
+	//	{
+	//		printf("Usage:\n%s -mm0 <problem> <tmpdir1 <tmpdir2>\n", argv[0]);
+	//		exit(0);
+	//	}
+	//	RubiksState a, b;
+	//	RubiksCube c;
+	//	b.Reset();
+	//	
+	//	int which = 0;
+	//	which = atoi(argv[2]);
+	//	if (which < 10)
+	//		GetKorfInstance(a, which);
+	//	else if (which == 19)
+	//	{
+	//		GetSuperFlip(a);
+	//		// Any action will reduce this to 19 moves to solve
+	//		c.ApplyAction(a, 0);
+	//	}
+	//	else if (which == 20)
+	//	{
+	//		GetSuperFlip(a);
+	//	}
+	//	MM0::MM0(a, b, argv[3], argv[4]);
+	//}
+	//else if (strcmp(argv[1], "-mm") == 0)
+	//{
+	//	if (argc <= 5)
+	//	{
+	//		printf("Usage:\n%s -mm <problem> <tmpdir1 <tmpdir2> <heuristicdir>\n", argv[0]);
+	//		exit(0);
+	//	}
+	//	RubiksState a, b;
+	//	RubiksCube c;
+	//	b.Reset();
+	//	// solution depth 12
+	//	c.ApplyAction(a, 0*3);
+	//	c.ApplyAction(a, 1*3);
+	//	c.ApplyAction(a, 2*3);
+	//	c.ApplyAction(a, 3*3);
+	//	c.ApplyAction(a, 4*3);
+	//	c.ApplyAction(a, 5*3);
+	//	c.ApplyAction(a, 4*3);
+	//	c.ApplyAction(a, 3*3);
+	//	c.ApplyAction(a, 2*3);
+	//	c.ApplyAction(a, 1*3);
+	//	c.ApplyAction(a, 0*3);
+	//	c.ApplyAction(a, 1*3);
+	//	c.ApplyAction(a, 2*3);
+	//	c.ApplyAction(a, 3*3);
+	//	c.ApplyAction(a, 4*3);
 
-		int which = 0;
-		//which = atoi(argv[2]);
-		//if (which < 10)
-		//	GetKorfInstance(a, which);
-		//else if (which == 19)
-		//{
-		//	GetSuperFlip(a);
-		//	// Any action will reduce this to 19 moves to solve
-		//	c.ApplyAction(a, 0);
-		//}
-		//else if (which == 20)
-		//{
-		//	GetSuperFlip(a);
-		//}
-		//else if (which > 20)
-		//{
-		//	GetDepth20(a, which-21);
-		//}
-		hprefix = argv[5];
-		Heuristic<RubiksState> forward;
-		Heuristic<RubiksState> reverse;
-		BuildHeuristics(a, b, forward);
-		BuildHeuristics(b, a, reverse);
+	//	int which = 0;
+	//	//which = atoi(argv[2]);
+	//	//if (which < 10)
+	//	//	GetKorfInstance(a, which);
+	//	//else if (which == 19)
+	//	//{
+	//	//	GetSuperFlip(a);
+	//	//	// Any action will reduce this to 19 moves to solve
+	//	//	c.ApplyAction(a, 0);
+	//	//}
+	//	//else if (which == 20)
+	//	//{
+	//	//	GetSuperFlip(a);
+	//	//}
+	//	//else if (which > 20)
+	//	//{
+	//	//	GetDepth20(a, which-21);
+	//	//}
+	//	hprefix = argv[5];
+	//	Heuristic<RubiksState> forward;
+	//	Heuristic<RubiksState> reverse;
+	//	BuildHeuristics(a, b, forward);
+	//	BuildHeuristics(b, a, reverse);
 
-		RubiksCube* cube = new RubiksCube();
-		PEMMRubik *searcher = new PEMMRubik(a, b, argv[3], argv[4], forward, reverse, cube);
+	//	RubiksCube* cube = new RubiksCube();
+	//	PEMMRubik *searcher = new PEMMRubik(a, b, argv[3], argv[4], forward, reverse, cube);
 
-		searcher->FindAPath();
+	//	searcher->FindAPath();
 
-		//MM::MM(a, b, argv[3], argv[4], argv[5]);
-	}
-	else if (argc > 3 && strcmp(argv[1], "-grid") == 0)
-	{
-		AnalyzeMap(argv[2], argv[3]);
-	}
-	else if (argc > 3 && strcmp(argv[1], "-testPruning") == 0)
-	{
-		TestPruning(atoi(argv[2]), atoi(argv[3]));
-	}
-	else if (strcmp(argv[1], "-mnpuzzle3") == 0)
-	{
-		hprefix = argv[5];
-		int sz = 3;
-		MNPuzzleState start(sz,sz);
-		MNPuzzleState goal(sz, sz);
+	//	//MM::MM(a, b, argv[3], argv[4], argv[5]);
+	//}
+	//else if (argc > 3 && strcmp(argv[1], "-grid") == 0)
+	//{
+	//	AnalyzeMap(argv[2], argv[3]);
+	//}
+	//else if (argc > 3 && strcmp(argv[1], "-testPruning") == 0)
+	//{
+	//	TestPruning(atoi(argv[2]), atoi(argv[3]));
+	//}
+	//else if (strcmp(argv[1], "-mnpuzzle3") == 0)
+	//{
+	//	hprefix = argv[5];
+	//	int sz = 3;
+	//	MNPuzzleState start(sz,sz);
+	//	MNPuzzleState goal(sz, sz);
 
-		Heuristic<MNPuzzleState> forward;
-		Heuristic<MNPuzzleState> reverse;
+	//	Heuristic<MNPuzzleState> forward;
+	//	Heuristic<MNPuzzleState> reverse;
 
-		MNPuzzle puzzle(sz, sz);
-		start.Reset();
-		goal.Reset();
+	//	MNPuzzle puzzle(sz, sz);
+	//	start.Reset();
+	//	goal.Reset();
 
-		std::vector<MNPuzzleState> puzzle_vector;
-		MNPuzzle::Create_Random_MN_Puzzles(goal, puzzle_vector, 20);
-		//std::vector<slideDir> actions;
-		//srand(time(0));
-		//for (int i = 0; i < 10; i++)
-		//{
-		//	puzzle.GetActions(start, actions);
-		//	puzzle.ApplyAction(start, actions[rand()%actions.size()]);
-		//}
-
-
-		start = puzzle_vector[atoi(argv[2])];
-
-		BuildHeuristics(start, goal, forward,sz);
-		BuildHeuristics(goal, start, reverse,sz);
+	//	std::vector<MNPuzzleState> puzzle_vector;
+	//	MNPuzzle::Create_Random_MN_Puzzles(goal, puzzle_vector, 20);
+	//	//std::vector<slideDir> actions;
+	//	//srand(time(0));
+	//	//for (int i = 0; i < 10; i++)
+	//	//{
+	//	//	puzzle.GetActions(start, actions);
+	//	//	puzzle.ApplyAction(start, actions[rand()%actions.size()]);
+	//	//}
 
 
-		
-		PEMMMNPuzzle *searcher;
+	//	start = puzzle_vector[atoi(argv[2])];
 
-		std::cout << "Start: " << start << std::endl;
-		std::cout << "Goal: " << goal << std::endl;
-		searcher = new PEMMMNPuzzle(start, goal, argv[3], argv[4], forward, reverse, &puzzle);
-		searcher->FindAPath();
-	}
+	//	BuildHeuristics(start, goal, forward,sz);
+	//	BuildHeuristics(goal, start, reverse,sz);
+
+
+	//	
+	//	PEMMMNPuzzle *searcher;
+
+	//	std::cout << "Start: " << start << std::endl;
+	//	std::cout << "Goal: " << goal << std::endl;
+	//	searcher = new PEMMMNPuzzle(start, goal, argv[3], argv[4], forward, reverse, &puzzle);
+	//	searcher->FindAPath();
+	//}
 	else if (strcmp(argv[1], "-mnpuzzle4") == 0)
 	{
 		hprefix = argv[5];
 		int sz = 4;
 		MNPuzzleState start(sz, sz);
 		MNPuzzleState goal(sz, sz);
-
-		Heuristic<MNPuzzleState> forward;
-		Heuristic<MNPuzzleState> reverse;
 
 		MNPuzzle puzzle(sz, sz);
 		start.Reset();
@@ -324,17 +321,23 @@ int main(int argc, char* argv[])
 		//	puzzle.GetActions(start, actions);
 		//	puzzle.ApplyAction(start, actions[rand()%actions.size()]);
 		//}
+		//Heuristic<MNPuzzleState> forward;
+		//Heuristic<MNPuzzleState> reverse;
+		//BuildHeuristics(start, goal, forward, sz);
+		//BuildHeuristics(goal, start, reverse, sz);
 
-		BuildHeuristics(start, goal, forward, sz);
-		BuildHeuristics(goal, start, reverse, sz);
+		MNPuzzle forward(sz, sz);
+		MNPuzzle reverse(sz, sz);
+		forward.Set_Use_Manhattan_Heuristic(true);
+		reverse.Set_Use_Manhattan_Heuristic(true);
+		//ManhattanDistanceHeuristic forward;
+		//ManhattanDistanceHeuristic reverse;
 
-
-
-		PEMMMNPuzzle *searcher;
+		PEMMMNPuzzle<MNPuzzle> *searcher;
 
 		std::cout << "Start: " << start << std::endl;
 		std::cout << "Goal: " << goal << std::endl;
-		searcher = new PEMMMNPuzzle(start, goal, argv[3], argv[4], forward, reverse, &puzzle);
+		searcher = new PEMMMNPuzzle<MNPuzzle>(start, goal, argv[3], argv[4], forward, reverse, &puzzle);
 		searcher->FindAPath();
 	}
 	else {

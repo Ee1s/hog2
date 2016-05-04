@@ -124,12 +124,12 @@ struct closedList {
 //template<class state>
 //typedef void (*build_heuristic_function)(state, state, Heuristic<state> &);
 
-template<class state,class action>
+template<class state,class action, typename heuristic>
 class PEMM
 {
 public:
 	//PEMM(state &start, state &goal, const char *p1, const char *p2, build_heuristic_function bh_func);
-	PEMM(state &start, state &goal, const char *p1, const char *p2, Heuristic<state>& f, Heuristic<state>& b, SearchEnvironment<state, action>* se);
+	PEMM(state &start, state &goal, const char *p1, const char *p2, heuristic& f, heuristic& b, SearchEnvironment<state, action>* se);
 		
 	void FindAPath();
 
@@ -186,8 +186,8 @@ protected:
 	std::mutex printLock;
 	std::mutex countLock;
 	std::mutex openLock;
-	Heuristic<state> forward;
-	Heuristic<state> reverse;
+	heuristic forward;
+	heuristic reverse;
 
 	std::unordered_map<closedData, closedList, closedDataHash> closed;
 	std::unordered_map<openData, openList, openDataHash> open;
@@ -215,9 +215,9 @@ protected:
 //
 
 
-template<class state, class action>
-PEMM<state, action>::PEMM(state &start, state &goal, const char *p1, const char *p2, Heuristic<state>& f, Heuristic<state>& b, SearchEnvironment<state, action>* se)
-	:prefix1(p1), prefix2(p2), bestSolution(100), expanded(0)
+template<class state, class action, typename heuristic>
+PEMM<state, action, heuristic>::PEMM(state &start, state &goal, const char *p1, const char *p2, heuristic& f, heuristic& b, SearchEnvironment<state, action>* se)
+	:prefix1(p1), prefix2(p2), bestSolution(100), expanded(0),forward(f),reverse(b)
 {
 
 	gDistBackward.resize(120);
@@ -226,8 +226,7 @@ PEMM<state, action>::PEMM(state &start, state &goal, const char *p1, const char 
 	//(*bh_func)(start, goal, forward);
 	//(*bh_func)(goal, start, reverse);
 
-	forward = f;
-	reverse = b;
+
 	moreThanCube = se;
 	std::cout.setf(std::ios_base::fixed, std::ios_base::floatfield);
 	std::cout << std::setprecision(2);
@@ -255,8 +254,8 @@ PEMM<state, action>::PEMM(state &start, state &goal, const char *p1, const char 
 
 
 
-template<class state, class action>
-void PEMM<state, action>::FindAPath()
+template<class state, class action, typename heuristic>
+void PEMM<state, action, heuristic>::FindAPath()
 {
 	Timer t;
 	t.StartTimer();
@@ -273,8 +272,8 @@ void PEMM<state, action>::FindAPath()
 }
 
 
-template<class state, class action>
-std::string PEMM<state, action>::GetClosedName(closedData d)
+template<class state, class action, typename heuristic>
+std::string PEMM<state, action, heuristic>::GetClosedName(closedData d)
 {
 	std::string s;
 	if (d.dir == kForward)
@@ -293,8 +292,8 @@ std::string PEMM<state, action>::GetClosedName(closedData d)
 	return s;
 }
 
-template<class state, class action>
-std::string PEMM<state, action>::GetOpenName(const openData &d)
+template<class state, class action, typename heuristic>
+std::string PEMM<state, action, heuristic>::GetOpenName(const openData &d)
 {
 	std::string s;
 	if (d.dir == kForward)
@@ -319,8 +318,8 @@ std::string PEMM<state, action>::GetOpenName(const openData &d)
 	return s;
 }
 
-template<class state, class action>
-openData PEMM<state, action>::GetBestFile()
+template<class state, class action, typename heuristic>
+openData PEMM<state, action, heuristic>::GetBestFile()
 {
 	minGForward = 1000;
 	minGBackward = 1000;
@@ -364,25 +363,31 @@ openData PEMM<state, action>::GetBestFile()
 	return best;
 }
 
-template<class state, class action>
-void PEMM<state, action>::GetOpenData(const state &start, tSearchDirection dir, int cost,
+template<class state, class action, typename heuristic>
+void PEMM<state, action, heuristic>::GetOpenData(const state &start, tSearchDirection dir, int cost,
 	openData &d, uint64_t &data)
 {
+
 	int bucket;
 	//uint64_t data;
 	GetBucketAndData(start, bucket, data);
 	//openData d;
 	d.dir = dir;
 	d.gcost = cost;
-	d.hcost = (dir == kForward) ? forward.HCost(start, start) : reverse.HCost(start, start);
+	d.hcost = (dir == kForward) ? forward.HCost(start, g) : reverse.HCost(start, s);
+
+	//std::cout << "start: " << start << "\n";
+	//std::cout << "s: " << s << "\n";
+	//std::cout << "g: " << g << "\n";
+	//std::cout << "hcost: " << (int)d.hcost << "\n";
 	//d.hcost2 = (dir==kForward)?reverse.HCost(start, start):forward.HCost(start, start);
 	d.bucket = bucket;
 	//d.priority = d.gcost+d.hcost;
 	d.priority = std::max(d.gcost + d.hcost, d.gcost * 2);
 }
 
-template<class state, class action>
-void PEMM<state, action>::AddStatesToQueue(const openData &d, uint64_t *data, size_t count)
+template<class state, class action, typename heuristic>
+void PEMM<state, action, heuristic>::AddStatesToQueue(const openData &d, uint64_t *data, size_t count)
 {
 	openLock.lock();
 	if (open.find(d) == open.end())
@@ -403,8 +408,8 @@ void PEMM<state, action>::AddStatesToQueue(const openData &d, uint64_t *data, si
 	openLock.unlock();
 }
 
-template<class state, class action>
-void PEMM<state, action>::AddStateToQueue(openData &d, uint64_t data)
+template<class state, class action, typename heuristic>
+void PEMM<state, action, heuristic>::AddStateToQueue(openData &d, uint64_t data)
 {
 	AddStatesToQueue(d, &data, 1);
 	//	if (open.find(d) == open.end())
@@ -426,8 +431,8 @@ void PEMM<state, action>::AddStateToQueue(openData &d, uint64_t data)
 	//	fwrite(&data, sizeof(data), 1, open[d].f);
 }
 
-template<class state, class action>
-void PEMM<state, action>::AddStateToQueue(const state &start, tSearchDirection dir, int cost)
+template<class state, class action, typename heuristic>
+void PEMM<state, action, heuristic>::AddStateToQueue(const state &start, tSearchDirection dir, int cost)
 {
 	openData d;
 	uint64_t rank;
@@ -452,8 +457,8 @@ void PEMM<state, action>::AddStateToQueue(const state &start, tSearchDirection d
 //	//remove(GetOpenName(d).c_str());
 //}
 
-template<class state, class action>
-bool PEMM<state, action>::CanTerminateSearch()
+template<class state, class action, typename heuristic>
+bool PEMM<state, action, heuristic>::CanTerminateSearch()
 {
 	int val;
 	if (bestSolution <= (val = std::max(currentC, std::max(minFForward, std::max(minFBackward, minGBackward + minGForward + 1)))))
@@ -482,8 +487,8 @@ bool PEMM<state, action>::CanTerminateSearch()
 	return false;
 }
 
-template<class state, class action>
-void PEMM<state, action>::CheckSolution(std::unordered_map<openData, openList, openDataHash> currentOpen, openData d,
+template<class state, class action, typename heuristic>
+void PEMM<state, action, heuristic>::CheckSolution(std::unordered_map<openData, openList, openDataHash> currentOpen, openData d,
 	const std::unordered_set<uint64_t> &states)
 {
 	//std::cout<<"\ncheck solution\n";
@@ -528,8 +533,8 @@ void PEMM<state, action>::CheckSolution(std::unordered_map<openData, openList, o
 	}
 }
 
-template<class state, class action>
-void PEMM<state, action>::ReadBucket(std::unordered_set<uint64_t> &states, openData d)
+template<class state, class action, typename heuristic>
+void PEMM<state, action, heuristic>::ReadBucket(std::unordered_set<uint64_t> &states, openData d)
 {
 	const size_t bufferSize = 128;
 	uint64_t buffer[bufferSize];
@@ -545,8 +550,8 @@ void PEMM<state, action>::ReadBucket(std::unordered_set<uint64_t> &states, openD
 	open[d].f = 0;
 }
 
-template<class state, class action>
-void PEMM<state, action>::RemoveDuplicates(std::unordered_set<uint64_t> &states, openData d)
+template<class state, class action, typename heuristic>
+void PEMM<state, action, heuristic>::RemoveDuplicates(std::unordered_set<uint64_t> &states, openData d)
 {
 	for (int depth = d.gcost - 2; depth < d.gcost; depth++)
 	{
@@ -580,8 +585,8 @@ void PEMM<state, action>::RemoveDuplicates(std::unordered_set<uint64_t> &states,
 	}
 }
 
-template<class state, class action>
-void PEMM<state, action>::WriteToClosed(std::unordered_set<uint64_t> &states, openData d)
+template<class state, class action, typename heuristic>
+void PEMM<state, action, heuristic>::WriteToClosed(std::unordered_set<uint64_t> &states, openData d)
 {
 	closedData c;
 	c.bucket = d.bucket;
@@ -599,8 +604,8 @@ void PEMM<state, action>::WriteToClosed(std::unordered_set<uint64_t> &states, op
 	}
 }
 
-template<class state, class action>
-void PEMM<state, action>::ParallelExpandBucket(openData d, const std::unordered_set<uint64_t> &states, int myThread, int totalThreads)
+template<class state, class action, typename heuristic>
+void PEMM<state, action, heuristic>::ParallelExpandBucket(openData d, const std::unordered_set<uint64_t> &states, int myThread, int totalThreads)
 {
 	//std::cout << "\nparallel expanding\n";
 	const int cacheSize = 1024;
@@ -632,16 +637,18 @@ void PEMM<state, action>::ParallelExpandBucket(openData d, const std::unordered_
 
 		std::vector<action> actions;
 		moreThanCube->GetActions(tmp, actions);
-		//std::cout << "get actions\n";
 		for (auto x = actions.begin(); x != actions.end(); x++)
 		{
 			GetState(tmp, d.bucket, values);
-			//std::cout << "tmp" << tmp << "\n";
 			// copying 2 64-bit values is faster than undoing a move
+			//std::cout << "state:" << tmp<<"\n";
+			//std::cout << "action:" << *x<<"\n";
 			moreThanCube->ApplyAction(tmp, *x);
 			openData newData;
 			uint64_t newRank;
 			GetOpenData(tmp, d.dir, d.gcost + 1, newData, newRank);
+
+			//std::cout << "hcost:" << (int)newData.hcost << "\n";
 
 			//if (dat.hcost-newData.hcost > 1)
 			//	std::cout << "inconsistency!!!\n";
@@ -669,8 +676,8 @@ void PEMM<state, action>::ParallelExpandBucket(openData d, const std::unordered_
 	countLock.unlock();
 }
 
-template<class state, class action>
-void PEMM<state, action>::ExpandNextFile()
+template<class state, class action, typename heuristic>
+void PEMM<state, action, heuristic>::ExpandNextFile()
 {
 	// 1. Get next expansion target
 	openData d = GetBestFile();
@@ -715,14 +722,14 @@ void PEMM<state, action>::ExpandNextFile()
 	timer.StartTimer();
 	// Read in opposite buckets to check for solutions in parallel to expanding this bucket
 	openLock.lock();
-	std::thread t(&PEMM<state, action>::CheckSolution, this, open, d, std::ref(states));
+	std::thread t(&PEMM<state, action, heuristic>::CheckSolution, this, open, d, std::ref(states));
 	openLock.unlock();
 
 	// 3. expand all states in current bucket & write out successors
 	const int numThreads = std::thread::hardware_concurrency();
 	std::vector<std::thread *> threads;
 	for (int x = 0; x < numThreads; x++)
-		threads.push_back(new std::thread(&PEMM<state, action>::ParallelExpandBucket, this, d, std::ref(states), x, numThreads));
+		threads.push_back(new std::thread(&PEMM<state, action, heuristic>::ParallelExpandBucket, this, d, std::ref(states), x, numThreads));
 	for (int x = 0; x < threads.size(); x++)
 	{
 		threads[x]->join();
@@ -742,16 +749,16 @@ void PEMM<state, action>::ExpandNextFile()
 }
 
 /*
-template<class state, class action>
-int PEMM<state, action>::GetBucket(const state &s)
+template<class state, class action, typename heuristic>
+int PEMM<state, action, heuristic>::GetBucket(const state &s)
 {
 //uint64_t ehash = RubikEdgePDB::GetStateHash(s.edge);
 //return ehash&bucketMask;
 return 0;
 }
 
-template<class state, class action>
-void PEMM<state, action>::GetBucketAndData(const state &s, int &bucket, uint64_t &data)
+template<class state, class action, typename heuristic>
+void PEMM<state, action, heuristic>::GetBucketAndData(const state &s, int &bucket, uint64_t &data)
 {
 //uint64_t ehash = RubikEdgePDB::GetStateHash(s.edge);
 //uint64_t chash = RubikCornerPDB::GetStateHash(s.corner);
@@ -759,8 +766,8 @@ void PEMM<state, action>::GetBucketAndData(const state &s, int &bucket, uint64_t
 //data = (ehash >> bucketBits)*RubikCornerPDB::GetStateSpaceSize() + chash;
 }
 
-template<class state, class action>
-void PEMM<state, action>::GetState(state &s, int bucket, uint64_t data)
+template<class state, class action, typename heuristic>
+void PEMM<state, action, heuristic>::GetState(state &s, int bucket, uint64_t data)
 {
 //RubikCornerPDB::GetStateFromHash(s.corner, data%RubikCornerPDB::GetStateSpaceSize());
 //RubikEdgePDB::GetStateFromHash(s.edge, bucket | ((data / RubikCornerPDB::GetStateSpaceSize()) << bucketBits));

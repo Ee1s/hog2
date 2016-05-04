@@ -4,10 +4,14 @@
 #include "MNPuzzle.h"
 #include "PermutationPDB.h"
 
-class PEMMMNPuzzle : public PEMM<MNPuzzleState, slideDir> {
+
+uint64_t Factorial(int val);
+
+template<typename heuristic>
+class PEMMMNPuzzle : public PEMM<MNPuzzleState, slideDir, heuristic> {
 public:
-	PEMMMNPuzzle(MNPuzzleState &start, MNPuzzleState &goal, const char *p1, const char *p2, Heuristic<MNPuzzleState>& f, Heuristic<MNPuzzleState>& b, MNPuzzle* se)
-		: PEMM<MNPuzzleState, slideDir>(start, goal, p1, p2, f, b, se)
+	PEMMMNPuzzle(MNPuzzleState &start, MNPuzzleState &goal, const char *p1, const char *p2, heuristic& f, heuristic& b, MNPuzzle* se)
+		: PEMM<MNPuzzleState, slideDir,heuristic>(start, goal, p1, p2, f, b, se)
 	{
 	}
 
@@ -36,84 +40,78 @@ public:
 	void Save(FILE *f);
 	//std::string GetFileName(const char *prefix);
 };
-//
 
-/*
-namespace MNPuzzlePDB {
-	uint64_t Factorial(int val);
-	//{
-	//	static uint64_t table[21] =
-	//	{ 1ll, 1ll, 2ll, 6ll, 24ll, 120ll, 720ll, 5040ll, 40320ll, 362880ll, 3628800ll, 39916800ll, 479001600ll,
-	//		6227020800ll, 87178291200ll, 1307674368000ll, 20922789888000ll, 355687428096000ll,
-	//		6402373705728000ll, 121645100408832000ll, 2432902008176640000ll };
-	//	if (val > 20)
-	//		return (uint64_t)-1;
-	//	return table[val];
-	//}
+class ManhattanDistanceHeuristic
+{
+public:
+	ManhattanDistanceHeuristic() { }
+	~ManhattanDistanceHeuristic() {}
+	void SetGoal(const MNPuzzleState& s) { goal = s; }
+	int GetHCost(const MNPuzzleState& s);
+	int HCost(const MNPuzzleState& s1, const MNPuzzleState& s2);
+	MNPuzzleState goal;
+};
 
-	int CountSmallerInRight(const MNPuzzleState &s, int low, int high);
-	//{
-	//	int count = 0;
-	//
-	//	for (int i = low + 1; i <= high; ++i)
-	//		if (s.puzzle[i] < s.puzzle[low])
-	//			count++;
-	//
-	//	return count;
-	//}
-	
-	int GetRank(const MNPuzzleState &s);
-	//{
-	//	int size = s.puzzle.size();
-	//	int mul = Factorial(size);
-	//	int rank = 1;
-	//	int countRight;
-	//
-	//	for (int i = 0; i < size; i++)
-	//	{
-	//		mul = Factorial(size - 1 - i);
-	//
-	//		// count number of chars smaller than str[i]
-	//		// fron str[i+1] to str[len-1]
-	//		countRight = CountSmallerInRight(s, i, size - 1);
-	//
-	//		rank += countRight * mul;
-	//	}
-	//
-	//	return rank;
-	//}
-	
-	uint64_t GetStateHash(const MNPuzzleState &node);
-	//{
-	//	uint64_t hashVal = 0;
-	//	//for (int x = 0; x < node.puzzle.size(); x++)
-	//	//{
-	//	//	hashVal = (hashVal << 1) + node.puzzle[x];
-	//	//}
-	//	//hashVal = hashVal*Factorial(12) + GetRank(node);
-	//	hashVal = GetRank(node);
-	//	return hashVal;
-	//}
-	
-	void GetStateFromHash(MNPuzzleState &node, uint64_t hash);
-	//{
-	//	int size = node.puzzle.size();
-	//	std::vector<int> pz;
-	//	for (int i = 0; i < size; i++)
-	//		pz.push_back(i);
-	//	int countRight = 0;
-	//	hash = hash - 1;
-	//	//std::cout << "\n get state from hash, hash:" << hash << "\n";
-	//	for (int i = 0; i < size; i++)
-	//	{
-	//		countRight = hash / Factorial(size - 1 - i);
-	//		hash = hash%Factorial(size - 1 - i);
-	//		node.puzzle[i] = pz[countRight];
-	//		pz.erase(pz.begin() + countRight);
-	//	}
-	//	//std::cout << "node" << node << "\n";
-	//}
+
+class SlidingTilePuzzle
+{
+public:
+	SlidingTilePuzzle() {  }
+	SlidingTilePuzzle(unsigned int w, unsigned int h) :width(w), height(h) {  }
+	SlidingTilePuzzle(const SlidingTilePuzzle& s)
+		:width(s.width), height(s.height)
+	{}
+	~SlidingTilePuzzle() {}
+
+	void GetRankFromState(const MNPuzzleState& state, uint64_t& rank);
+	void GetStateFromRank(MNPuzzleState& state, const uint64_t& rank);
+
+	unsigned int width;
+	unsigned int height;
+
+};
+
+
+
+
+
+template<typename heuristic>
+int PEMMMNPuzzle<heuristic>::GetBucket(const MNPuzzleState &s)
+{
+	//Puzzle puzzle(s.width, s.height);
+	//uint64_t hash = puzzle.GetStateHash(s);
+	//std::cout << "state: " << s << " bucket: " << (int)(hash & 0x1F) <<"\n";
+	SlidingTilePuzzle puzzle(s.width, s.height);
+	uint64_t hash;
+	puzzle.GetRankFromState(s,hash);
+	return hash & 0x3;
 }
-*/
+
+template<typename heuristic>
+void PEMMMNPuzzle<heuristic>::GetBucketAndData(const MNPuzzleState &s, int &bucket, uint64_t &data)
+{
+	//MNPuzzle puzzle(s.width, s.height);
+	//uint64_t hash = puzzle.GetStateHash(s);
+	SlidingTilePuzzle puzzle(s.width, s.height);
+	uint64_t hash;
+	puzzle.GetRankFromState(s, hash);
+	bucket = hash & 0x3;
+	data = hash >> 2;
+	//std::cout << "state: " << s << " bucket: " << bucket << " data: " << data << "\n";
+
+}
+
+template<typename heuristic>
+void PEMMMNPuzzle<heuristic>::GetState(MNPuzzleState &s, int bucket, uint64_t data)
+{
+	//std::cout << "\nget state from data:"<<data <<" bucket:" <<bucket;
+	uint64_t hash = (data << 2) | bucket;
+	//std::cout << " hash :" << hash << "\n";
+	//MNPuzzle puzzle(s.width, s.height);
+	//puzzle.GetStateFromHash(s, hash);
+	SlidingTilePuzzle puzzle(s.width, s.height);
+	puzzle.GetStateFromRank(s, hash);
+	//std::cout << "state: " << s << " bucket: " << bucket << " data: " << data << "\n";
+}
 
 #endif

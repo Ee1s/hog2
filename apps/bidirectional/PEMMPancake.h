@@ -4,10 +4,10 @@
 #include "PancakePuzzle.h"
 #include "PermutationPDB.h"
 
-class PEMMPancake : public PEMM<PancakePuzzleState, PancakePuzzleAction> {
+class PEMMPancake : public PEMM<PancakePuzzleState, PancakePuzzleAction, Heuristic<PancakePuzzleState>> {
 public:
 	PEMMPancake(PancakePuzzleState &start, PancakePuzzleState &goal, const char *p1, const char *p2, Heuristic<PancakePuzzleState>& f, Heuristic<PancakePuzzleState>& b, PancakePuzzle* se)
-		: PEMM<PancakePuzzleState, PancakePuzzleAction>(start, goal, p1, p2, f, b, se)
+		: PEMM<PancakePuzzleState, PancakePuzzleAction, Heuristic<PancakePuzzleState>>(start, goal, p1, p2, f, b, se)
 	{
 	}
 
