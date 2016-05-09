@@ -333,7 +333,7 @@ openData PEMM<state, action>::GetBestFile()
 	//return (open.begin())->first;
 	for (const auto &s : open)
 	{
-		if (2 * s.first.gcost > bestSolution)
+		if (2 * s.first.gcost >= bestSolution)
 			continue;
 		if (s.first.dir == kForward && s.first.gcost < minGForward)
 			minGForward = s.first.gcost;

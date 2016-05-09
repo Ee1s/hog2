@@ -38,9 +38,9 @@ lambdaPriorityQueue<xyLoc> fward(2.0);
 lambdaPriorityQueue<xyLoc> bward(2.0);
 WMM<xyLoc, tDirection, MapEnvironment, lambdaPriorityQueue<xyLoc>> mm(2.0,2.0,fward,bward);
 
-lambdaPriorityQueue<xyLoc> wfward(1.5);
-lambdaPriorityQueue<xyLoc> wbward(1.5);
-WMM<xyLoc, tDirection, MapEnvironment, lambdaPriorityQueue<xyLoc>> wmmcompare(1.5, 1.5, wfward, wbward);
+lambdaPriorityQueue<xyLoc> wfward(1.25);
+lambdaPriorityQueue<xyLoc> wbward(1.25);
+WMM<xyLoc, tDirection, MapEnvironment, lambdaPriorityQueue<xyLoc>> wmmcompare(1.25, 1.25, wfward, wbward);
 
 //TemplateAStar<xyLoc, tDirection, MapEnvironment> wmmcompare;
 bool mmSearchRunning = false;

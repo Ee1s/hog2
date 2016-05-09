@@ -28,8 +28,8 @@ struct WMMCompare {
 //		double p2 = i2.g+i2.h;
 		if (fequal(p1, p2))
 		{
-			return (fgreater(i1.g, i2.g)); // low g-cost over high
-			//return (fless(i1.g, i2.g)); // high g-cost over low
+			//return (fgreater(i1.g, i2.g)); // low g-cost over high
+			return (fless(i1.g, i2.g)); // high g-cost over low
 		}
 		return (fgreater(p1, p2)); // low priority over high
 	}
@@ -257,7 +257,7 @@ void WMM<state, action, environment, priorityQueue>::Expand(priorityQueue &curre
 														   Heuristic<state> *heuristic, const state &target)
 {
 	uint64_t nextID = current.Close();
-	if (current.Lookup(nextID).g > currentCost / 2)
+	if (current.Lookup(nextID).g >= currentCost / 2)
 		return;
 	nodesExpanded++;
 
