@@ -256,9 +256,32 @@ void WMM<state, action, environment, priorityQueue>::Expand(priorityQueue &curre
 														   priorityQueue &opposite,
 														   Heuristic<state> *heuristic, const state &target)
 {
-	uint64_t nextID = current.Close();
+	uint64_t nextID = current.Peek();
+
 	if (current.Lookup(nextID).g >= currentCost / 2)
+	{
+		current.Lookup(nextID).h = currentCost - current.Lookup(nextID).g;
+		current.KeyChanged(nextID);
 		return;
+	}
+
+	//std::vector<uint64_t> IDs;
+	//while (current.OpenSize() > 0 && current.Lookup(nextID).g >= currentCost / 2)
+	//{
+	//	IDs.push_back(nextID);
+	//	nextID = current.Close();
+	//}
+	//if (current.OpenSize() == 0 && IDs.size()>0)
+	//{
+	//	std::cout << "current size==0\n";
+	//	return;
+	//}
+	//for (int i = 0; i < IDs.size(); i++)
+	//	current.Reopen(IDs[i]);
+
+	//if (current.Lookup(nextID).g >= currentCost / 2)
+	//	return;
+	nextID = current.Close();
 	nodesExpanded++;
 
 	env->GetSuccessors(current.Lookup(nextID).data, neighbors);
@@ -297,6 +320,10 @@ void WMM<state, action, environment, priorityQueue>::Expand(priorityQueue &curre
 							middleNode = succ;
 						}
 					}
+					else if (loc == kClosedList)
+					{
+						current.Lookup(childID).g = 10000;
+					}
 				}
 			}
 				break;
@@ -324,6 +351,10 @@ void WMM<state, action, environment, priorityQueue>::Expand(priorityQueue &curre
 						currentCost = current.Lookup(nextID).g+edgeCost + opposite.Lookup(reverseLoc).g;
 						middleNode = succ;
 					}
+				}
+				else if (loc == kClosedList)
+				{
+					current.Lookup(childID).g = 10000;
 				}
 			}
 		}
