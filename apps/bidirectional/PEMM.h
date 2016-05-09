@@ -333,6 +333,8 @@ openData PEMM<state, action>::GetBestFile()
 	//return (open.begin())->first;
 	for (const auto &s : open)
 	{
+		if (2 * s.first.gcost > bestSolution)
+			continue;
 		if (s.first.dir == kForward && s.first.gcost < minGForward)
 			minGForward = s.first.gcost;
 		else if (s.first.dir == kBackward && s.first.gcost < minGBackward)
@@ -383,7 +385,7 @@ void PEMM<state, action>::GetOpenData(const state &start, tSearchDirection dir, 
 	if(dir == kForward)
 		d.priority = std::max(d.gcost + d.hcost, (int)(((double)d.gcost) * 1.5));
 	if (dir == kBackward)
-		d.priority = std::max(d.gcost + d.hcost, (int)(((double)d.gcost) * 3.0));
+		d.priority = std::max(d.gcost + d.hcost, (int)(((double)d.gcost) * 1.5));
 }
 
 template<class state, class action>

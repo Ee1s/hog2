@@ -257,6 +257,8 @@ void WMM<state, action, environment, priorityQueue>::Expand(priorityQueue &curre
 														   Heuristic<state> *heuristic, const state &target)
 {
 	uint64_t nextID = current.Close();
+	if (current.Lookup(nextID).g > currentCost / 2)
+		return;
 	nodesExpanded++;
 
 	env->GetSuccessors(current.Lookup(nextID).data, neighbors);
