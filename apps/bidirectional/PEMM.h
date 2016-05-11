@@ -591,6 +591,40 @@ void PEMM<state, action, heuristic>::RemoveDuplicates(std::unordered_set<uint64_
 			}
 		} while (numRead == bufferSize);
 	}
+
+	if (bestSolution == NOT_FOUND)
+		return;
+
+	for (int depth = bestSolution/2; depth < bestSolution; depth++)
+	{
+		closedData c;
+		c.bucket = d.bucket;
+		c.depth = depth;
+		c.dir = (d.dir == kForward ? kBackward : kForward);
+
+		//closedList &cd = closed[c];
+		//if (cd.f == 0)
+		//	continue;
+		auto cdi = closed.find(c);
+		if (cdi == closed.end())
+			continue;
+		closedList &cd = closed[c];
+		rewind(cd.f);
+
+		const size_t bufferSize = 1024;
+		uint64_t buffer[bufferSize];
+		rewind(cd.f);
+		size_t numRead;
+		do {
+			numRead = fread(buffer, sizeof(uint64_t), bufferSize, cd.f);
+			for (int x = 0; x < numRead; x++)
+			{
+				auto i = states.find(buffer[x]);
+				if (i != states.end())
+					states.erase(i);
+			}
+		} while (numRead == bufferSize);
+	}
 }
 
 template<class state, class action, typename heuristic>
