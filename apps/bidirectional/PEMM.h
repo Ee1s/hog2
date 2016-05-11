@@ -10,7 +10,7 @@
 #include <unordered_set>
 #include <iomanip>
 
-
+#define NOT_FOUND 1000000
 
 /*RubiksState is replaced by State
 since method BuildHeuristics depends on the run-time type of State,
@@ -129,7 +129,7 @@ class PEMM
 {
 public:
 	//PEMM(state &start, state &goal, const char *p1, const char *p2, build_heuristic_function bh_func);
-	PEMM(state &start, state &goal, const char *p1, const char *p2, heuristic& f, heuristic& b, SearchEnvironment<state, action>* se);
+	PEMM(state &start, state &goal, const char *p1, const char *p2, heuristic& f, heuristic& b, SearchEnvironment<state, action>* se,double _lambda=2.0);
 		
 	void FindAPath();
 
@@ -197,6 +197,8 @@ protected:
 	//RubiksCube is a derived class of searchEnvironment<,>
 	SearchEnvironment<state, action>* moreThanCube;
 
+	double lambda;
+	uint64_t expandedOnFirstSolution;
 	state s;
 	state g;
 };
@@ -216,8 +218,8 @@ protected:
 
 
 template<class state, class action, typename heuristic>
-PEMM<state, action, heuristic>::PEMM(state &start, state &goal, const char *p1, const char *p2, heuristic& f, heuristic& b, SearchEnvironment<state, action>* se)
-	:prefix1(p1), prefix2(p2), bestSolution(100), expanded(0),forward(f),reverse(b)
+PEMM<state, action, heuristic>::PEMM(state &start, state &goal, const char *p1, const char *p2, heuristic& f, heuristic& b, SearchEnvironment<state, action>* se, double _lambda)
+	:prefix1(p1), prefix2(p2), bestSolution(NOT_FOUND), expanded(0),forward(f),reverse(b),lambda(_lambda)
 {
 
 	gDistBackward.resize(120);
@@ -330,6 +332,8 @@ openData PEMM<state, action, heuristic>::GetBestFile()
 	//return (open.begin())->first;
 	for (const auto &s : open)
 	{
+		if (2 * s.first.gcost >= bestSolution)
+			continue;
 		if (s.first.dir == kForward && s.first.gcost < minGForward)
 			minGForward = s.first.gcost;
 		else if (s.first.dir == kBackward && s.first.gcost < minGBackward)
@@ -383,7 +387,7 @@ void PEMM<state, action, heuristic>::GetOpenData(const state &start, tSearchDire
 	//d.hcost2 = (dir==kForward)?reverse.HCost(start, start):forward.HCost(start, start);
 	d.bucket = bucket;
 	//d.priority = d.gcost+d.hcost;
-	d.priority = std::max(d.gcost + d.hcost, d.gcost * 2);
+	d.priority = std::max(d.gcost + d.hcost, (int)(((double)d.gcost) * lambda));
 }
 
 template<class state, class action, typename heuristic>
@@ -465,6 +469,7 @@ bool PEMM<state, action, heuristic>::CanTerminateSearch()
 	{
 		printf("Done!\n");
 		printf("%llu nodes expanded\n", expanded);
+		printf("%llu nodes expanded when finding the first solution\n", expandedOnFirstSolution);
 		printf("Forward Distribution:\n");
 		for (int x = 0; x < gDistForward.size(); x++)
 			if (gDistForward[x] != 0)
@@ -520,6 +525,9 @@ void PEMM<state, action, heuristic>::CheckSolution(std::unordered_map<openData, 
 						//s.second.states.find(data) != s.second.states.end()
 						printf("\nFound solution gcost1 %d hcost1 %d gcost2 %d hcost2 %d\n", d.gcost,d.hcost, s.first.gcost,s.first.hcost);
 						printf("\nFound solution cost %d+%d=%d\n", d.gcost, s.first.gcost, d.gcost + s.first.gcost);
+						//this is the first solution found
+						if (bestSolution == NOT_FOUND)
+							expandedOnFirstSolution = expanded;
 						bestSolution = std::min(d.gcost + s.first.gcost, bestSolution);
 						printf("Current best solution: %d\n", bestSolution);
 						printLock.unlock();
@@ -716,7 +724,7 @@ void PEMM<state, action, heuristic>::ExpandNextFile()
 	timer.EndTimer();
 
 	printLock.lock();
-	std::cout << "Next: " << d << " (" << states.size() << " entries) [" << timer.GetElapsedTime() << "s reading/dd] ";
+	//std::cout << "Next: " << d << " (" << states.size() << " entries) [" << timer.GetElapsedTime() << "s reading/dd] ";
 	printLock.unlock();
 
 	timer.StartTimer();
@@ -738,13 +746,13 @@ void PEMM<state, action, heuristic>::ExpandNextFile()
 	open.erase(open.find(d));
 	timer.EndTimer();
 	printLock.lock();
-	std::cout << "[" << timer.GetElapsedTime() << "s expanding]+";
+	//std::cout << "[" << timer.GetElapsedTime() << "s expanding]+";
 	timer.StartTimer();
 	printLock.unlock();
 	t.join();
 	printLock.lock();
 	timer.EndTimer();
-	std::cout << "[" << timer.GetElapsedTime() << "s]\n";
+	//std::cout << "[" << timer.GetElapsedTime() << "s]\n";
 	printLock.unlock();
 }
 

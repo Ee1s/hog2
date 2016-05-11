@@ -319,6 +319,9 @@ int main(int argc, char* argv[])
 		low = atoi(argv[2]);
 		high = atoi(argv[3]);
 
+		double lambda = 2.0;
+		if (argc > 5)
+			lambda = atof(argv[5]);
 
 		MNPuzzle forward(sz, sz);
 		MNPuzzle reverse(sz, sz);
@@ -335,7 +338,7 @@ int main(int argc, char* argv[])
 			GetMNPuzzleInstance(i, start);
 			std::cout << "Start: " << start << std::endl;
 			std::cout << "Goal: " << goal << std::endl;
-			searcher = new PEMMMNPuzzle<MNPuzzle>(start, goal, argv[4], argv[4], forward, reverse, &puzzle);
+			searcher = new PEMMMNPuzzle<MNPuzzle>(start, goal, argv[4], argv[4], forward, reverse, &puzzle,lambda);
 			searcher->FindAPath();
 			delete searcher;
 		}
