@@ -265,6 +265,14 @@ void WMM<state, action, environment, priorityQueue>::Expand(priorityQueue &curre
 		return;
 	}
 
+	if (currentCost < DBL_MAX)
+	{
+		printf("WMM(%1.2f,%1.2f) expanding, cost: %1.2f + %1.2f = %1.2f\n",
+			lambda1, lambda2, current.Lookup(nextID).g,
+			current.Lookup(nextID).h,
+			current.Lookup(nextID).g + current.Lookup(nextID).h);
+	}
+
 	//std::vector<uint64_t> IDs;
 	//while (current.OpenSize() > 0 && current.Lookup(nextID).g >= currentCost / 2)
 	//{
@@ -323,6 +331,7 @@ void WMM<state, action, environment, priorityQueue>::Expand(priorityQueue &curre
 					else if (loc == kClosedList)
 					{
 						current.Lookup(childID).g = 10000;
+						current.KeyChanged(childID);
 					}
 				}
 			}
@@ -355,6 +364,7 @@ void WMM<state, action, environment, priorityQueue>::Expand(priorityQueue &curre
 				else if (loc == kClosedList)
 				{
 					current.Lookup(childID).g = 10000;
+					current.KeyChanged(childID);
 				}
 			}
 		}
