@@ -18,8 +18,8 @@
 
 template <class state>
 struct WMMCompare {
-	WMMCompare():lambda(2.0){}
-	WMMCompare(double l):lambda(l){}
+	WMMCompare():lambda(2.0), tie_breaking(0){}
+	WMMCompare(double l, int t):lambda(l), tie_breaking(t){}
 	bool operator()(const AStarOpenClosedData<state> &i1, const AStarOpenClosedData<state> &i2) const
 	{
 		double p1 = std::max(i1.g+i1.h, i1.g*lambda);
@@ -28,21 +28,29 @@ struct WMMCompare {
 //		double p2 = i2.g+i2.h;
 		if (fequal(p1, p2))
 		{
-			//return (fgreater(i1.g, i2.g)); // low g-cost over high
-			return (fless(i1.g, i2.g)); // high g-cost over low
+			if(fequal(i1.g, i2.g))
+				return (fgreater(i1.h, i2.h)); // low h-cost over high
+
+			if(tie_breaking ==0)
+				return (fgreater(i1.g, i2.g)); // low g-cost over high
+			else if(tie_breaking ==1)
+				return (fless(i1.g, i2.g)); // high g-cost over low
+
 		}
 		return (fgreater(p1, p2)); // low priority over high
 	}
 	double lambda;
+	//tie_breaking ==0 means prefer low gcost, tie_breaking==1 means prefer high gcost
+	int tie_breaking;
 };
 
 template <class state>
 class lambdaPriorityQueue : public AStarOpenClosed<state, WMMCompare<state>>
 {
 public:
-	lambdaPriorityQueue(double lambda)
+	lambdaPriorityQueue(double lambda, int t)
 	{
-		WMMCompare<state> c(lambda);
+		WMMCompare<state> c(lambda,t);
 		AStarOpenClosed<state, WMMCompare<state>>::SetCompareKey(c);
 	}
 };
