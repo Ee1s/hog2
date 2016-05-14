@@ -351,49 +351,25 @@ openData PEMM<state, action>::GetBestFile()
 		}
 		else if (s.first.priority == best.priority)
 		{
-			if (s.first.gcost < best.gcost)
+			if (s.first.gcost + s.first.hcost < best.gcost + best.hcost)
+			{
 				best = s.first;
-			else if (s.first.gcost == best.gcost)
+			}
+			else if (s.first.gcost + s.first.hcost == best.gcost + best.hcost)
 			{
-				if (s.first.dir == best.dir)
+				if (s.first.gcost < best.gcost)
+					best = s.first;
+				else if (s.first.gcost == best.gcost)
 				{
-					if (best.bucket > s.first.bucket)
+					if (s.first.dir == best.dir)
+					{
+						if (best.bucket > s.first.bucket)
+							best = s.first;
+					}
+					else if (s.first.dir == kForward)
 						best = s.first;
 				}
-				else if (s.first.dir == kForward)
-					best = s.first;
 			}
-		}
-	}
-	for (const auto &s : open)
-	{
-		if (s.first.priority == best.priority)
-		{
-			if (s.first.gcost * 2 == s.first.priority && s.first.hcost < s.first.gcost)
-			{
-					best = s.first;
-					break;
-			}
-
-		}
-	}
-	for (const auto &s : open)
-	{
-		if (s.first.priority == best.priority)
-		{
-			if (s.first.gcost * 2 == s.first.priority && s.first.hcost < s.first.gcost)
-			{
-				if (s.first.hcost < best.hcost)
-					best = s.first;
-				else if (s.first.dir == best.dir)
-				{
-					if (best.bucket > s.first.bucket)
-						best = s.first;
-				}
-				else if (s.first.dir == kForward)
-					best = s.first;
-			}
-
 		}
 	}
 
