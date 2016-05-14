@@ -369,10 +369,19 @@ openData PEMM<state, action>::GetBestFile()
 	{
 		if (s.first.priority == best.priority)
 		{
-			if (s.first.gcost * 2 == best.priority && s.first.hcost < s.first.gcost)
+			if (s.first.gcost * 2 == s.first.priority && s.first.hcost < s.first.gcost)
 			{
-				best = s.first;
-				break;
+				if (best.gcost < s.first.gcost)
+					best = s.first;
+				else if (s.first.hcost < best.hcost)
+					best = s.first;
+				else if (s.first.dir == best.dir)
+				{
+					if (best.bucket > s.first.bucket)
+						best = s.first;
+				}
+				else if (s.first.dir == kForward)
+					best = s.first;
 			}
 
 		}
