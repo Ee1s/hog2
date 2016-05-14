@@ -371,9 +371,19 @@ openData PEMM<state, action>::GetBestFile()
 		{
 			if (s.first.gcost * 2 == s.first.priority && s.first.hcost < s.first.gcost)
 			{
-				if (best.gcost < s.first.gcost)
 					best = s.first;
-				else if (s.first.hcost < best.hcost)
+					break;
+			}
+
+		}
+	}
+	for (const auto &s : open)
+	{
+		if (s.first.priority == best.priority)
+		{
+			if (s.first.gcost * 2 == s.first.priority && s.first.hcost < s.first.gcost)
+			{
+				if (s.first.hcost < best.hcost)
 					best = s.first;
 				else if (s.first.dir == best.dir)
 				{
@@ -386,6 +396,8 @@ openData PEMM<state, action>::GetBestFile()
 
 		}
 	}
+
+
 	return best;
 }
 
