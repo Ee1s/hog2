@@ -495,7 +495,7 @@ bool PEMM<state, action>::CanTerminateSearch()
 	//		printf("-Triggered by gforward+gbackward+1\n");
 	//	return true;
 	//}
-	if (bestSolution <= currentC)
+	if (bestSolution <= (val = std::max(currentC, std::max(minFForward, std::max(minFBackward, minGBackward + minGForward + 1)))))
 	{
 		printf("Done!\n");
 		printf("%llu nodes expanded\n", expanded);
