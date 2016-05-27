@@ -265,8 +265,22 @@ void WMM<state, action, environment, priorityQueue>::Expand(priorityQueue &curre
 														   Heuristic<state> *heuristic, const state &target)
 {
 	uint64_t nextID = current.Peek();
+	auto ne = current.Lookat(nextID);
 
-	if (current.Lookup(nextID).g >= currentCost / 2)
+	bool mustExp = false;
+	uint64_t openItem;
+	for (int i = 0; i < opposite.OpenSize(); i++)
+	{
+		auto item = opposite.Lookat(opposite.GetOpenItem(i));
+		if (fless(item.g + ne.g + 1, currentCost) && fless(item.g + item.h, currentCost))
+		{
+			mustExp = true;
+			break;
+		}
+	}
+
+		
+	if (!mustExp || current.Lookup(nextID).g >= currentCost / 2)
 	{
 		current.Lookup(nextID).h = currentCost - current.Lookup(nextID).g;
 		current.KeyChanged(nextID);

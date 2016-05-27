@@ -34,13 +34,13 @@ TemplateAStar<xyLoc, tDirection, MapEnvironment> backward;
 
 ZeroHeuristic<xyLoc> *z = new ZeroHeuristic<xyLoc>;
 
-lambdaPriorityQueue<xyLoc> fward(2.01,1);
-lambdaPriorityQueue<xyLoc> bward(2.01,1);
-WMM<xyLoc, tDirection, MapEnvironment, lambdaPriorityQueue<xyLoc>> mm(1.99,1.99,fward,bward);
+lambdaPriorityQueue<xyLoc> fward(2.00,1);
+lambdaPriorityQueue<xyLoc> bward(2.00,1);
+WMM<xyLoc, tDirection, MapEnvironment, lambdaPriorityQueue<xyLoc>> mm(2.00,2.00,fward,bward);
 
-lambdaPriorityQueue<xyLoc> wfward(2.0,0);
-lambdaPriorityQueue<xyLoc> wbward(2.0,0);
-WMM<xyLoc, tDirection, MapEnvironment, lambdaPriorityQueue<xyLoc>> wmmcompare(2.0, 2.0, wfward, wbward);
+lambdaPriorityQueue<xyLoc> wfward(1.0,0);
+lambdaPriorityQueue<xyLoc> wbward(1.0,0);
+WMM<xyLoc, tDirection, MapEnvironment, lambdaPriorityQueue<xyLoc>> wmmcompare(1.0, 1.0, wfward, wbward);
 
 //TemplateAStar<xyLoc, tDirection, MapEnvironment> wmmcompare;
 bool mmSearchRunning = false;
