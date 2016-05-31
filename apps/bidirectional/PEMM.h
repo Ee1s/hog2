@@ -129,7 +129,7 @@ class PEMM
 {
 public:
 	//PEMM(state &start, state &goal, const char *p1, const char *p2, build_heuristic_function bh_func);
-	PEMM(state &start, state &goal, const char *p1, const char *p2, heuristic& f, heuristic& b, SearchEnvironment<state, action>* se,double _lambda=2.0);
+	PEMM(state &start, state &goal, const char *p1, const char *p2, heuristic& f, heuristic& b, SearchEnvironment<state, action>* se,double _lambda=2.0, int _dirs=2, int _cstar =NOT_FOUND);
 		
 	void FindAPath();
 
@@ -183,6 +183,9 @@ protected:
 	uint64_t expanded;
 	std::vector<uint64_t> gDistForward;
 	std::vector<uint64_t> gDistBackward;
+	//the nodes less than c star distribution
+	std::vector<uint64_t> gltcDistForward;
+	std::vector<uint64_t> gltcDistBackward;
 	std::mutex printLock;
 	std::mutex countLock;
 	std::mutex openLock;
@@ -201,6 +204,12 @@ protected:
 	uint64_t expandedOnFirstSolution;
 	state s;
 	state g;
+
+	//dirs ==2 means bidirectional, dirs ==0 means pure forward search, dirs ==1 means pure backward search
+	int dirs;
+
+	//optimal solution
+	int cstar;
 };
 
 
@@ -218,12 +227,16 @@ protected:
 
 
 template<class state, class action, typename heuristic>
-PEMM<state, action, heuristic>::PEMM(state &start, state &goal, const char *p1, const char *p2, heuristic& f, heuristic& b, SearchEnvironment<state, action>* se, double _lambda)
-	:prefix1(p1), prefix2(p2), bestSolution(NOT_FOUND), expanded(0),forward(f),reverse(b),lambda(_lambda)
-{
+PEMM<state, action, heuristic>::PEMM(state &start, state &goal, const char *p1, const char *p2, heuristic& f, heuristic& b,
+	SearchEnvironment<state, action>* se, double _lambda, int _dirs, int _cstar)
+	:prefix1(p1), prefix2(p2), bestSolution(NOT_FOUND), expanded(0),forward(f),reverse(b),
+	lambda(_lambda),dirs(_dirs),cstar(_cstar)
+	{
 
 	gDistBackward.resize(120);
 	gDistForward.resize(120);
+	gltcDistBackward.resize(120);
+	gltcDistForward.resize(120);
 
 	//(*bh_func)(start, goal, forward);
 	//(*bh_func)(goal, start, reverse);
@@ -332,6 +345,28 @@ openData PEMM<state, action, heuristic>::GetBestFile()
 	//return (open.begin())->first;
 	for (const auto &s : open)
 	{
+		if (dirs == 0 && s.first.dir == kForward)
+		{
+			best = s.first;
+			break;
+		}
+
+		if (dirs == 1 && s.first.dir == kBackward)
+		{
+			best = s.first;
+			break;
+		}
+	}
+	for (const auto &s : open)
+	{
+		//dirs == 1 means pure backward search
+		if (dirs == 1 && s.first.dir == kForward)
+			continue;
+
+		//dirs == 0 means pure forward search
+		if (dirs == 0 && s.first.dir == kBackward)
+			continue;
+
 		if (2 * s.first.gcost >= bestSolution)
 			continue;
 		if (s.first.dir == kForward && s.first.gcost < minGForward)
@@ -478,6 +513,18 @@ bool PEMM<state, action, heuristic>::CanTerminateSearch()
 		for (int x = 0; x < gDistBackward.size(); x++)
 			if (gDistBackward[x] != 0)
 				printf("%d\t%llu\n", x, gDistBackward[x]);
+		if (cstar < NOT_FOUND)
+		{
+			printf("Forward Distribution of f<C*:\n");
+			for (int x = 0; x < gltcDistForward.size(); x++)
+				if (gltcDistForward[x] != 0)
+					printf("%d\t%llu\n", x, gltcDistForward[x]);
+			printf("Backward Distribution of f<C*:\n");
+			for (int x = 0; x < gltcDistBackward.size(); x++)
+				if (gltcDistBackward[x] != 0)
+					printf("%d\t%llu\n", x, gltcDistBackward[x]);
+		}
+
 		finished = true;
 		if (val == currentC)
 			printf("-Triggered by current priority\n");
@@ -712,9 +759,19 @@ void PEMM<state, action, heuristic>::ParallelExpandBucket(openData d, const std:
 	countLock.lock();
 	expanded += localExpanded;
 	if (d.dir == kForward)
+	{
 		gDistForward[d.gcost] += localExpanded;
+		if(d.gcost + d.hcost<cstar)
+			gltcDistForward[d.gcost] += localExpanded;
+
+	}		
 	else
+	{
 		gDistBackward[d.gcost] += localExpanded;
+		if (d.gcost + d.hcost<cstar)
+			gltcDistBackward[d.gcost] += localExpanded;
+	}
+	
 	countLock.unlock();
 }
 

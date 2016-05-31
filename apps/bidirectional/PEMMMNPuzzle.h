@@ -10,8 +10,9 @@ uint64_t Factorial(int val);
 template<typename heuristic>
 class PEMMMNPuzzle : public PEMM<MNPuzzleState, slideDir, heuristic> {
 public:
-	PEMMMNPuzzle(MNPuzzleState &start, MNPuzzleState &goal, const char *p1, const char *p2, heuristic& f, heuristic& b, MNPuzzle* se,double lambda=2.0)
-		: PEMM<MNPuzzleState, slideDir,heuristic>(start, goal, p1, p2, f, b, se,lambda)
+	PEMMMNPuzzle(MNPuzzleState &start, MNPuzzleState &goal, const char *p1, const char *p2, heuristic& f, heuristic& b, MNPuzzle* se,
+		double lambda=2.0, int dirs = 2, int cstar = NOT_FOUND)
+		: PEMM<MNPuzzleState, slideDir,heuristic>(start, goal, p1, p2, f, b, se,lambda,dirs, cstar)
 	{
 	}
 

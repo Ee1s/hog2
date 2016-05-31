@@ -323,6 +323,14 @@ int main(int argc, char* argv[])
 		if (argc > 5)
 			lambda = atof(argv[5]);
 
+		int dirs = 2;
+		if (argc > 6)
+			dirs = atoi(argv[6]);
+		
+		int cstar = NOT_FOUND;
+		if (argc > 7)
+			cstar = atoi(argv[7]);
+
 		MNPuzzle forward(sz, sz);
 		MNPuzzle reverse(sz, sz);
 		forward.Set_Use_Manhattan_Heuristic(true);
@@ -338,7 +346,7 @@ int main(int argc, char* argv[])
 			GetMNPuzzleInstance(i, start);
 			std::cout << "Start: " << start << std::endl;
 			std::cout << "Goal: " << goal << std::endl;
-			searcher = new PEMMMNPuzzle<MNPuzzle>(start, goal, argv[4], argv[4], forward, reverse, &puzzle,lambda);
+			searcher = new PEMMMNPuzzle<MNPuzzle>(start, goal, argv[4], argv[4], forward, reverse, &puzzle,lambda,dirs,cstar);
 			searcher->FindAPath();
 			delete searcher;
 		}
