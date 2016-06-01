@@ -113,6 +113,9 @@ private:
 	Heuristic<state> *backwardHeuristic;
 	double lambda1;
 	double lambda2;
+
+	int sol_dir;
+	double sol_g;
 };
 
 template <class state, class action, class environment, class priorityQueue>
@@ -135,6 +138,7 @@ bool WMM<state, action, environment, priorityQueue>::InitializeSearch(environmen
 	forwardHeuristic = forward;
 	backwardHeuristic = backward;
 	currentCost = DBL_MAX;
+	sol_g = DBL_MAX;
 	forwardQueue.Reset();
 	backwardQueue.Reset();
 	ResetNodeCount();
@@ -267,20 +271,31 @@ void WMM<state, action, environment, priorityQueue>::Expand(priorityQueue &curre
 	uint64_t nextID = current.Peek();
 	auto ne = current.Lookat(nextID);
 
-	bool mustExp = false;
-	uint64_t openItem;
-	for (int i = 0; i < opposite.OpenSize(); i++)
+	//bool mustExp = false;
+	//uint64_t openItem;
+	//for (int i = 0; i < opposite.OpenSize(); i++)
+	//{
+	//	auto item = opposite.Lookat(opposite.GetOpenItem(i));
+	//	if (fless(item.g + ne.g + 1, currentCost) && fless(item.g + item.h, currentCost))
+	//	{
+	//		mustExp = true;
+	//		break;
+	//	}
+	//}
+	int dir;
+	if (target == start)
+		dir = 1;
+	else
+		dir = 0;
+		
+	if (dir==sol_dir  && currentCost != DBL_MAX && current.Lookup(nextID).g >= sol_g)
 	{
-		auto item = opposite.Lookat(opposite.GetOpenItem(i));
-		if (fless(item.g + ne.g + 1, currentCost) && fless(item.g + item.h, currentCost))
-		{
-			mustExp = true;
-			break;
-		}
+		current.Lookup(nextID).h = currentCost - current.Lookup(nextID).g;
+		current.KeyChanged(nextID);
+		return;
 	}
 
-		
-	if (!mustExp || current.Lookup(nextID).g >= currentCost / 2)
+	if (dir != sol_dir && currentCost!= DBL_MAX && current.Lookup(nextID).g >= currentCost - sol_g - 1)
 	{
 		current.Lookup(nextID).h = currentCost - current.Lookup(nextID).g;
 		current.KeyChanged(nextID);
@@ -347,6 +362,19 @@ void WMM<state, action, environment, priorityQueue>::Expand(priorityQueue &curre
 								   opposite.Lookup(reverseLoc).g,
 								   current.Lookup(nextID).g+edgeCost+opposite.Lookup(reverseLoc).g);
 							currentCost = current.Lookup(nextID).g+edgeCost + opposite.Lookup(reverseLoc).g;
+							if (target == start)
+							{
+								sol_dir = 1;
+								printf("from backward expansion\n");
+							}
+								
+							else
+							{
+								sol_dir = 0;
+								printf("from forward expansion\n");
+							}
+								
+							sol_g = current.Lookup(nextID).g;
 							middleNode = succ;
 						}
 					}
@@ -380,6 +408,18 @@ void WMM<state, action, environment, priorityQueue>::Expand(priorityQueue &curre
 							   opposite.Lookup(reverseLoc).g,
 							   current.Lookup(nextID).g+edgeCost+opposite.Lookup(reverseLoc).g);
 						currentCost = current.Lookup(nextID).g+edgeCost + opposite.Lookup(reverseLoc).g;
+						if (target == start)
+						{
+							sol_dir = 1;
+							printf("from backward expansion\n");
+						}
+
+						else
+						{
+							sol_dir = 0;
+							printf("from forward expansion\n");
+						}
+						sol_g = current.Lookup(nextID).g;
 						middleNode = succ;
 					}
 				}
