@@ -129,7 +129,8 @@ class PEMM
 {
 public:
 	//PEMM(state &start, state &goal, const char *p1, const char *p2, build_heuristic_function bh_func);
-	PEMM(state &start, state &goal, const char *p1, const char *p2, heuristic& f, heuristic& b, SearchEnvironment<state, action>* se,double _lambda=2.0, int _dirs=2, int _cstar =NOT_FOUND);
+	PEMM(state &start, state &goal, const char *p1, const char *p2, heuristic& f, heuristic& b, 
+		SearchEnvironment<state, action>* se,double _lambda=2.0, int _dirs=2, int _cstar =NOT_FOUND, int _aaf=2);
 		
 	void FindAPath();
 
@@ -210,6 +211,10 @@ protected:
 
 	//optimal solution
 	int cstar;
+
+	int sol_g;
+	tSearchDirection sol_dir;
+	int actionAfterFound;
 };
 
 
@@ -228,11 +233,11 @@ protected:
 
 template<class state, class action, typename heuristic>
 PEMM<state, action, heuristic>::PEMM(state &start, state &goal, const char *p1, const char *p2, heuristic& f, heuristic& b,
-	SearchEnvironment<state, action>* se, double _lambda, int _dirs, int _cstar)
-	:prefix1(p1), prefix2(p2), bestSolution(NOT_FOUND), expanded(0),forward(f),reverse(b),
-	lambda(_lambda),dirs(_dirs),cstar(_cstar)
+	SearchEnvironment<state, action>* se, double _lambda, int _dirs, int _cstar, int _aaf)
+	:prefix1(p1), prefix2(p2), bestSolution(NOT_FOUND), expanded(0), forward(f), reverse(b),
+	lambda(_lambda), dirs(_dirs), cstar(_cstar), actionAfterFound(_aaf)
 	{
-
+		std::cout << "aaf: "<< actionAfterFound <<"\n";
 	gDistBackward.resize(120);
 	gDistForward.resize(120);
 	gltcDistBackward.resize(120);
@@ -367,8 +372,24 @@ openData PEMM<state, action, heuristic>::GetBestFile()
 		if (dirs == 0 && s.first.dir == kBackward)
 			continue;
 
-		if (2 * s.first.gcost >= bestSolution)
+		if (actionAfterFound ==2 && 2 * s.first.gcost >= bestSolution)
 			continue;
+		if (actionAfterFound == 1)
+		{
+			if(s.first.gcost*1.5 >= bestSolution && s.first.dir==kForward)
+				continue;
+			if (s.first.gcost*3 >= bestSolution && s.first.dir == kBackward)
+				continue;
+		} 
+		if (actionAfterFound == 0 && bestSolution != NOT_FOUND)
+		{
+			if (s.first.dir == sol_dir && s.first.gcost >= sol_g)
+				continue;
+
+			if (s.first.dir != sol_dir && s.first.gcost > bestSolution - sol_g)
+				continue;
+		}
+
 		if (s.first.dir == kForward && s.first.gcost < minGForward)
 			minGForward = s.first.gcost;
 		else if (s.first.dir == kBackward && s.first.gcost < minGBackward)
@@ -575,7 +596,14 @@ void PEMM<state, action, heuristic>::CheckSolution(std::unordered_map<openData, 
 						//this is the first solution found
 						if (bestSolution == NOT_FOUND)
 							expandedOnFirstSolution = expanded;
-						bestSolution = std::min(d.gcost + s.first.gcost, bestSolution);
+						if (d.gcost + s.first.gcost < bestSolution)
+						{
+							bestSolution = d.gcost + s.first.gcost;
+							sol_dir = d.dir;
+							sol_g = d.gcost;
+							//std::cout << "sol_dir: " << sol_dir << " sol_g: " << sol_g << " \n";
+						}
+
 						printf("Current best solution: %d\n", bestSolution);
 						printLock.unlock();
 

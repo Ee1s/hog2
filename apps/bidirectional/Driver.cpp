@@ -302,7 +302,7 @@ int main(int argc, char* argv[])
 	//	searcher = new PEMMMNPuzzle(start, goal, argv[3], argv[4], forward, reverse, &puzzle);
 	//	searcher->FindAPath();
 	//}
-	else if (strcmp(argv[1], "-mnpuzzle4") == 0)
+	else if (argc>1 && strcmp(argv[1], "-mnpuzzle4") == 0)
 	{
 		//hprefix = argv[5];
 		int sz = 4;
@@ -331,6 +331,10 @@ int main(int argc, char* argv[])
 		if (argc > 7)
 			cstar = atoi(argv[7]);
 
+		int aaf = 2;
+		if (argc > 8)
+			aaf = atoi(argv[8]);
+
 		MNPuzzle forward(sz, sz);
 		MNPuzzle reverse(sz, sz);
 		forward.Set_Use_Manhattan_Heuristic(true);
@@ -342,19 +346,18 @@ int main(int argc, char* argv[])
 
 		for (int i = low - 1; i < high; i++)
 		{
-			std::cout << "\n problem" << i << "*********************\n";
+			std::cout << "\n problem" << i+1 << "*********************\n";
 			GetMNPuzzleInstance(i, start);
 			std::cout << "Start: " << start << std::endl;
 			std::cout << "Goal: " << goal << std::endl;
-			searcher = new PEMMMNPuzzle<MNPuzzle>(start, goal, argv[4], argv[4], forward, reverse, &puzzle,lambda,dirs,cstar);
+			searcher = new PEMMMNPuzzle<MNPuzzle>(start, goal, argv[4], argv[4], forward, reverse, &puzzle,lambda,dirs,cstar,aaf);
 			searcher->FindAPath();
 			delete searcher;
 		}
 
 	}
 	else {
-		InstallHandlers();
-		RunHOGGUI(argc, argv);
+		std::cout << "usage: "<<argv[0] <<"-mnpuzzle4 <low> <high> <directory> [lambda] [cstar] [aaf]";
 	}
 }
 

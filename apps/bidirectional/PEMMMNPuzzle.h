@@ -11,8 +11,8 @@ template<typename heuristic>
 class PEMMMNPuzzle : public PEMM<MNPuzzleState, slideDir, heuristic> {
 public:
 	PEMMMNPuzzle(MNPuzzleState &start, MNPuzzleState &goal, const char *p1, const char *p2, heuristic& f, heuristic& b, MNPuzzle* se,
-		double lambda=2.0, int dirs = 2, int cstar = NOT_FOUND)
-		: PEMM<MNPuzzleState, slideDir,heuristic>(start, goal, p1, p2, f, b, se,lambda,dirs, cstar)
+		double lambda=2.0, int dirs = 2, int cstar = NOT_FOUND, int aaf = 2)
+		: PEMM<MNPuzzleState, slideDir,heuristic>(start, goal, p1, p2, f, b, se,lambda,dirs, cstar,aaf)
 	{
 	}
 
