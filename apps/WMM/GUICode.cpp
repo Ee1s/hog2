@@ -40,7 +40,7 @@ WMM<xyLoc, tDirection, MapEnvironment, lambdaPriorityQueue<xyLoc>> mm(2.00,2.00,
 
 lambdaPriorityQueue<xyLoc> wfward(1.0,0);
 lambdaPriorityQueue<xyLoc> wbward(1.0,0);
-WMM<xyLoc, tDirection, MapEnvironment, lambdaPriorityQueue<xyLoc>> wmmcompare(1.0, 1.0, wfward, wbward);
+WMM<xyLoc, tDirection, MapEnvironment, lambdaPriorityQueue<xyLoc>> wmmcompare(1.0, 1.0, wfward, wbward,1);
 
 //TemplateAStar<xyLoc, tDirection, MapEnvironment> wmmcompare;
 bool mmSearchRunning = false;

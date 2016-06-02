@@ -130,7 +130,8 @@ class PEMM
 {
 public:
 	//PEMM(state &start, state &goal, const char *p1, const char *p2, build_heuristic_function bh_func);
-	PEMM(state &start, state &goal, const char *p1, const char *p2, Heuristic<state>& f, Heuristic<state>& b, SearchEnvironment<state, action>* se);
+	PEMM(state &start, state &goal, const char *p1, const char *p2, Heuristic<state>& f, Heuristic<state>& b, 
+		SearchEnvironment<state, action>* se,double _lambda = 2.0, int aaf=2);
 		
 	void FindAPath();
 
@@ -201,6 +202,8 @@ protected:
 
 	state s;
 	state g;
+	double lambda;
+	int actionAfterFound;
 };
 
 
@@ -218,8 +221,9 @@ protected:
 
 
 template<class state, class action>
-PEMM<state, action>::PEMM(state &start, state &goal, const char *p1, const char *p2, Heuristic<state>& f, Heuristic<state>& b, SearchEnvironment<state, action>* se)
-	:prefix1(p1), prefix2(p2), bestSolution(NOT_FOUND), expanded(0),expandedOnFirstSolution(0)
+PEMM<state, action>::PEMM(state &start, state &goal, const char *p1, const char *p2, Heuristic<state>& f, Heuristic<state>& b,
+	SearchEnvironment<state, action>* se,double _lambda,int aaf)
+	:prefix1(p1), prefix2(p2), bestSolution(NOT_FOUND), expanded(0),expandedOnFirstSolution(0),lambda(_lambda),actionAfterFound(aaf)
 {
 
 	gDistBackward.resize(120);
@@ -333,8 +337,16 @@ openData PEMM<state, action>::GetBestFile()
 	//return (open.begin())->first;
 	for (const auto &s : open)
 	{
-		if (2 * s.first.gcost >= bestSolution)
+		if (actionAfterFound == 2 && 2 * s.first.gcost >= bestSolution)
 			continue;
+		if (actionAfterFound == 1 && bestSolution != NOT_FOUND)
+		{
+			if (s.first.dir == kForward && 1.5 * s.first.gcost >= bestSolution)
+				continue;
+			if (s.first.dir == kBackward && 3.0 * s.first.gcost >= bestSolution)
+				continue;
+		}
+
 		if (s.first.dir == kForward && s.first.gcost < minGForward)
 			minGForward = s.first.gcost;
 		else if (s.first.dir == kBackward && s.first.gcost < minGBackward)
@@ -392,9 +404,9 @@ void PEMM<state, action>::GetOpenData(const state &start, tSearchDirection dir, 
 	d.bucket = bucket;
 	//d.priority = d.gcost+d.hcost;
 	if(dir == kForward)
-		d.priority = std::max(d.gcost + d.hcost, d.gcost * 2);
+		d.priority = std::max(d.gcost + d.hcost, (int)((int)(d.gcost) * lambda));
 	if (dir == kBackward)
-		d.priority = std::max(d.gcost + d.hcost, d.gcost * 2);
+		d.priority = std::max(d.gcost + d.hcost, (int)((int)(d.gcost) * lambda));
 }
 
 template<class state, class action>

@@ -59,8 +59,11 @@ public:
 template <class state, class action, class environment, class priorityQueue>
 class WMM {
 public:
-	WMM(double lamb1, double lamb2, priorityQueue f, priorityQueue b)
-		:lambda1(lamb1),lambda2(lamb2),forwardQueue(f),backwardQueue(b) { forwardHeuristic = 0; backwardHeuristic = 0; env = 0; ResetNodeCount(); }
+	WMM(double lamb1, double lamb2, priorityQueue f, priorityQueue b, int aaf=2)
+		:lambda1(lamb1),lambda2(lamb2),forwardQueue(f),backwardQueue(b),actionAfterFound(aaf) 
+	{ forwardHeuristic = 0; backwardHeuristic = 0; env = 0; ResetNodeCount(); 
+	std::cout << "aaf " << actionAfterFound<<"\n";
+	}
 	virtual ~WMM() {}
 	void GetPath(environment *env, const state& from, const state& to,
 				 Heuristic<state> *forward, Heuristic<state> *backward, std::vector<state> &thePath);
@@ -116,6 +119,7 @@ private:
 
 	int sol_dir;
 	double sol_g;
+	int actionAfterFound;
 };
 
 template <class state, class action, class environment, class priorityQueue>
@@ -282,25 +286,56 @@ void WMM<state, action, environment, priorityQueue>::Expand(priorityQueue &curre
 	//		break;
 	//	}
 	//}
+	if (actionAfterFound == 2 && currentCost != DBL_MAX)
+	{
+		if (2 * current.Lookup(nextID).g >= currentCost)
+		{
+			current.Lookup(nextID).h = currentCost - current.Lookup(nextID).g;
+			current.KeyChanged(nextID);
+			return;
+		}
+	}
+
 	int dir;
 	if (target == start)
 		dir = 1;
 	else
 		dir = 0;
-		
-	if (dir==sol_dir  && currentCost != DBL_MAX && current.Lookup(nextID).g >= sol_g)
+
+	if (actionAfterFound == 1 && currentCost != DBL_MAX)
 	{
-		current.Lookup(nextID).h = currentCost - current.Lookup(nextID).g;
-		current.KeyChanged(nextID);
-		return;
+		if (1.5 * current.Lookup(nextID).g >= currentCost && dir == 0)
+		{
+			current.Lookup(nextID).h = currentCost - current.Lookup(nextID).g;
+			current.KeyChanged(nextID);
+			return;
+		}
+		if (3.0 * current.Lookup(nextID).g >= currentCost && dir == 1)
+		{
+			current.Lookup(nextID).h = currentCost - current.Lookup(nextID).g;
+			current.KeyChanged(nextID);
+			return;
+		}
 	}
 
-	if (dir != sol_dir && currentCost!= DBL_MAX && current.Lookup(nextID).g >= currentCost - sol_g - 1)
+	if (actionAfterFound == 0 && currentCost != DBL_MAX)
 	{
-		current.Lookup(nextID).h = currentCost - current.Lookup(nextID).g;
-		current.KeyChanged(nextID);
-		return;
+		if (dir == sol_dir  && currentCost != DBL_MAX && current.Lookup(nextID).g >= sol_g)
+		{
+			current.Lookup(nextID).h = currentCost - current.Lookup(nextID).g;
+			current.KeyChanged(nextID);
+			return;
+		}
+
+		if (dir != sol_dir && currentCost != DBL_MAX && current.Lookup(nextID).g >= currentCost - sol_g - 1)
+		{
+			current.Lookup(nextID).h = currentCost - current.Lookup(nextID).g;
+			current.KeyChanged(nextID);
+			return;
+		}
 	}
+
+
 
 	//if (currentCost < DBL_MAX)
 	//{

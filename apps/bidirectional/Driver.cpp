@@ -201,7 +201,7 @@ int main(int argc, char* argv[])
 	{
 		if (argc <= 5)
 		{
-			printf("Usage:\n%s -mm <problem> <tmpdir1 <tmpdir2> <heuristicdir>\n", argv[0]);
+			printf("Usage:\n%s -mm <problem> <tmpdir1 <tmpdir2> <heuristicdir> [lambda] [aaf]\n", argv[0]);
 			exit(0);
 		}
 		RubiksState a, b;
@@ -248,8 +248,14 @@ int main(int argc, char* argv[])
 		BuildHeuristics(a, b, forward);
 		BuildHeuristics(b, a, reverse);
 
+		double lambda = 2.0;
+		if (argc > 6)
+			lambda = atof(argv[6]);
+		int aaf = 2;
+		if (argc > 7)
+			aaf = atoi(argv[7]);
 		RubiksCube* cube = new RubiksCube();
-		PEMMRubik *searcher = new PEMMRubik(a, b, argv[3], argv[4], forward, reverse, cube);
+		PEMMRubik *searcher = new PEMMRubik(a, b, argv[3], argv[4], forward, reverse, cube,lambda,aaf);
 
 		searcher->FindAPath();
 

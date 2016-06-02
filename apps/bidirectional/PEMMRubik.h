@@ -4,8 +4,9 @@
 
 class PEMMRubik : public PEMM<RubiksState, RubiksAction> {
 public:
-	PEMMRubik(RubiksState &start, RubiksState &goal, const char *p1, const char *p2, Heuristic<RubiksState> f, Heuristic<RubiksState> b, RubiksCube* se)
-		: PEMM<RubiksState, RubiksAction>(start, goal, p1, p2, f, b, se)
+	PEMMRubik(RubiksState &start, RubiksState &goal, const char *p1, const char *p2, Heuristic<RubiksState> f, Heuristic<RubiksState> b, 
+		RubiksCube* se, double lambda, int aaf)
+		: PEMM<RubiksState, RubiksAction>(start, goal, p1, p2, f, b, se,lambda,aaf)
 	{
 	}
 
