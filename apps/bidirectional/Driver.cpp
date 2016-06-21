@@ -116,7 +116,7 @@ int main(int argc, char* argv[])
 		goal.Reset();
 
 		int low = 1;
-		int high = 100;
+		int high = 33;
 
 		low = atoi(argv[2]);
 		high = atoi(argv[3]);
