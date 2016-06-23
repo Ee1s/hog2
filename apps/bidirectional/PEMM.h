@@ -843,7 +843,7 @@ void PEMM<state, action, heuristic>::ExpandNextFile()
 	timer.EndTimer();
 
 	printLock.lock();
-	//std::cout << "Next: " << d << " (" << states.size() << " entries) [" << timer.GetElapsedTime() << "s reading/dd] ";
+	std::cout << "Next: " << d << " (" << states.size() << " entries) [" << timer.GetElapsedTime() << "s reading/dd] ";
 	printLock.unlock();
 
 	timer.StartTimer();
@@ -865,13 +865,13 @@ void PEMM<state, action, heuristic>::ExpandNextFile()
 	open.erase(open.find(d));
 	timer.EndTimer();
 	printLock.lock();
-	//std::cout << "[" << timer.GetElapsedTime() << "s expanding]+";
+	std::cout << "[" << timer.GetElapsedTime() << "s expanding]+";
 	timer.StartTimer();
 	printLock.unlock();
 	t.join();
 	printLock.lock();
 	timer.EndTimer();
-	//std::cout << "[" << timer.GetElapsedTime() << "s]\n";
+	std::cout << "[" << timer.GetElapsedTime() << "s]\n";
 	printLock.unlock();
 }
 
