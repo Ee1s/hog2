@@ -11,7 +11,7 @@
 #include <iomanip>
 
 
-#define NOT_FOUND 100
+#define NOT_FOUND 10000
 
 /*RubiksState is replaced by State
 since method BuildHeuristics depends on the run-time type of State,
