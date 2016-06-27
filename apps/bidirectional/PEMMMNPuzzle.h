@@ -7,7 +7,7 @@
 class PEMMMNPuzzle : public PEMM<MNPuzzleState, slideDir> {
 public:
 	PEMMMNPuzzle(MNPuzzleState &start, MNPuzzleState &goal, const char *p1, const char *p2, Heuristic<MNPuzzleState>& f, Heuristic<MNPuzzleState>& b, 
-		MNPuzzle* se,double lambda =2.0, int aaf=2,int dirs, int cstar)
+		MNPuzzle* se,double lambda =2.0, int aaf=2,int dirs=2, int cstar=NOT_FOUND)
 		: PEMM<MNPuzzleState, slideDir>(start, goal, p1, p2, f, b, se,lambda,aaf,dirs,cstar)
 	{
 	}
