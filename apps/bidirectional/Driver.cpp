@@ -223,6 +223,22 @@ int main(int argc, char* argv[])
 		c.ApplyAction(a, 2*3);
 		c.ApplyAction(a, 3*3);
 		c.ApplyAction(a, 4*3);
+		
+		RubiksState arr[20];
+		for(int i=0;i<20;i++)
+			arr[i].Reset();
+		srand(20160622);
+		for(int i=0;i<10;i++)
+		{
+			for(int j=0;j<16;j++)
+				c.ApplyAction(arr[i],rand()%18);
+			std::cout<<arr[i]<<"\n";
+		}
+		for(int i=10;i<20;i++)
+		{
+			for(int j=0;j<17;j++)
+				c.ApplyAction(arr[i],rand()%18);
+		}
 
 		RubiksState arr[20];
 		for (int i = 0; i < 20; i++)
@@ -246,10 +262,12 @@ int main(int argc, char* argv[])
 			//std::cout << arr[i] << "\n";
 		}
 
+
 		int which = 0;
 		which = atoi(argv[2]);
 		if (which < 10)
 			GetKorfInstance(a, which);
+
 		else
 		{
 			a = arr[which - 10];
@@ -268,6 +286,7 @@ int main(int argc, char* argv[])
 		//{
 		//	GetDepth20(a, which-21);
 		//}
+
 		hprefix = argv[5];
 		Heuristic<RubiksState> forward;
 		Heuristic<RubiksState> reverse;
