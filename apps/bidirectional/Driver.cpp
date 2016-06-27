@@ -291,7 +291,7 @@ int main(int argc, char* argv[])
 		if (argc > 9)
 			cstar = atoi(argv[9]);
 		RubiksCube* cube = new RubiksCube();
-		PEMMRubik *searcher = new PEMMRubik(a, b, argv[3], argv[4], forward, reverse, cube,lambda,aaf);
+		PEMMRubik *searcher = new PEMMRubik(a, b, argv[3], argv[4], forward, reverse, cube,lambda,aaf,dirs,cstar);
 
 		searcher->FindAPath();
 
