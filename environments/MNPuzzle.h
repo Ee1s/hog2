@@ -102,6 +102,7 @@ static bool operator==(const MNPuzzleState &l1, const MNPuzzleState &l2)
 
 class MNPuzzle : public PermutationPuzzle::PermutationPuzzleEnvironment<MNPuzzleState, slideDir> {
 public:
+	MNPuzzle() {};
 	MNPuzzle(unsigned int width, unsigned int height);
 	MNPuzzle(unsigned int width, unsigned int height, const std::vector<slideDir> op_order); // used to set action order
 	~MNPuzzle();

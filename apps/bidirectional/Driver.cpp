@@ -42,6 +42,7 @@
 #include "PEMMRubik.h"
 #include "PEMMPancake.h"
 #include "PEMMMNPuzzle.h"
+#include "PEBFSMNPuzzle.h"
 #include "MR1PermutationPDB.h"
 
 struct hash128
@@ -207,6 +208,45 @@ int main(int argc, char* argv[])
 			std::cout << "Start: " << start << std::endl;
 			std::cout << "Goal: " << goal << std::endl;
 			searcher = new PEMMMNPuzzle<MNPuzzle>(start, goal, argv[4], argv[4], forward, reverse, &puzzle,lambda,dirs,cstar,aaf);
+			searcher->FindAPath();
+			delete searcher;
+		}
+
+	}
+	else if (argc>1 && strcmp(argv[1], "-pebfsstp4") == 0)
+	{
+		//hprefix = argv[5];
+		int sz = 4;
+		MNPuzzleState start(sz, sz);
+		MNPuzzleState goal(sz, sz);
+
+		MNPuzzle puzzle(sz, sz);
+		start.Reset();
+		goal.Reset();
+
+		int low = 1;
+		int high = 100;
+
+		low = atoi(argv[2]);
+		high = atoi(argv[3]);
+
+
+		MNPuzzle forward(sz, sz);
+		MNPuzzle reverse(sz, sz);
+		forward.Set_Use_Manhattan_Heuristic(true);
+		reverse.Set_Use_Manhattan_Heuristic(true);
+		//ManhattanDistanceHeuristic forward;
+		//ManhattanDistanceHeuristic reverse;
+
+		PEBFSMNPuzzle<MNPuzzle> *searcher;
+
+		for (int i = low - 1; i < high; i++)
+		{
+			std::cout << "\n problem" << i + 1 << "*********************\n";
+			GetMNPuzzleInstance(i, start);
+			std::cout << "Start: " << start << std::endl;
+			std::cout << "Goal: " << goal << std::endl;
+			searcher = new PEBFSMNPuzzle<MNPuzzle>(start, goal, argv[4], argv[4], forward, reverse, &puzzle);
 			searcher->FindAPath();
 			delete searcher;
 		}
