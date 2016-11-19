@@ -521,7 +521,7 @@ template<class state, class action, typename heuristic>
 bool PEMM<state, action, heuristic>::CanTerminateSearch()
 {
 	int val;
-	if (bestSolution <= (val = std::max(currentC, std::max(minFForward, std::max(minFBackward, minGBackward + minGForward + 1)))))
+	if (bestSolution <= (val = std::max(currentC, std::max(minFForward, std::max(minFBackward, minGBackward + minGForward)))))
 	{
 		printf("Done!\n");
 		printf("%llu nodes expanded\n", expanded);
@@ -534,16 +534,25 @@ bool PEMM<state, action, heuristic>::CanTerminateSearch()
 		for (int x = 0; x < gDistBackward.size(); x++)
 			if (gDistBackward[x] != 0)
 				printf("%d\t%llu\n", x, gDistBackward[x]);
+		uint64_t expanded_FltC = 0;
 		if (cstar < NOT_FOUND)
 		{
 			printf("Forward Distribution of f<C*:\n");
 			for (int x = 0; x < gltcDistForward.size(); x++)
 				if (gltcDistForward[x] != 0)
+				{
 					printf("%d\t%llu\n", x, gltcDistForward[x]);
+					expanded_FltC += gltcDistForward[x];
+				}
+
 			printf("Backward Distribution of f<C*:\n");
 			for (int x = 0; x < gltcDistBackward.size(); x++)
 				if (gltcDistBackward[x] != 0)
+				{
 					printf("%d\t%llu\n", x, gltcDistBackward[x]);
+					expanded_FltC += gltcDistBackward[x];
+				}
+			printf("%llu nodes expanded f<C*\n", expanded_FltC);
 		}
 
 		finished = true;
@@ -553,8 +562,8 @@ bool PEMM<state, action, heuristic>::CanTerminateSearch()
 			printf("-Triggered by f in the forward direction\n");
 		if (val == minFBackward)
 			printf("-Triggered by f in the backward direction\n");
-		if (val == minGBackward + minGForward + 1)
-			printf("-Triggered by gforward+gbackward+1\n");
+		if (val == minGBackward + minGForward)
+			printf("-Triggered by gforward+gbackward\n");
 		return true;
 	}
 	return false;

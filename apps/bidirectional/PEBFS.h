@@ -385,19 +385,19 @@ int PEBFS<state, action, heuristic>::GetBestPair(openData1& df, openData1& db)
 
 			else if (f_s1_s2 == minF)
 			{
-				if (s1.first.gcost + s2.first.gcost > fbest.gcost + bbest.gcost)
+				if (s1.first.gcost + s2.first.gcost < fbest.gcost + bbest.gcost)
 				{
 					fbest = s1.first;
 					bbest = s2.first;
 				}
 				else if (s1.first.gcost + s2.first.gcost == fbest.gcost + bbest.gcost)
 				{
-					if (s1.first.gcost > fbest.gcost)
+					if (s1.first.gcost < fbest.gcost)
 						fbest = s1.first;
 					else if (s1.first.gcost == fbest.gcost && s1.first.bucket < fbest.bucket)
 						fbest = s1.first;
 
-					if (s2.first.gcost > bbest.gcost)
+					if (s2.first.gcost < bbest.gcost)
 						bbest = s2.first;
 					else if (s2.first.gcost == bbest.gcost && s2.first.bucket < bbest.bucket)
 						bbest = s2.first;
@@ -514,17 +514,28 @@ bool PEBFS<state, action, heuristic>::CanTerminateSearch(std::unordered_map<open
 	for (int x = 0; x < gDistBackward.size(); x++)
 		if (gDistBackward[x] != 0)
 			printf("%d\t%llu\n", x, gDistBackward[x]);
+
+	uint64_t expanded_FltC = 0;
 	if (cstar < NOT_FOUND)
 	{
 		printf("Forward Distribution of f<C*:\n");
 		for (int x = 0; x < gltcDistForward.size(); x++)
 			if (gltcDistForward[x] != 0)
+			{
 				printf("%d\t%llu\n", x, gltcDistForward[x]);
+				expanded_FltC += gltcDistForward[x];
+			}
+				
 		printf("Backward Distribution of f<C*:\n");
 		for (int x = 0; x < gltcDistBackward.size(); x++)
 			if (gltcDistBackward[x] != 0)
+			{
 				printf("%d\t%llu\n", x, gltcDistBackward[x]);
+				expanded_FltC += gltcDistBackward[x];
+			}	
+		printf("%llu nodes expanded f<C*\n", expanded_FltC);
 	}
+	
 	finished = true;
 	return true;
 }
