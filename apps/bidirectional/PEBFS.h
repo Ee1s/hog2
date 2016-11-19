@@ -385,15 +385,23 @@ int PEBFS<state, action, heuristic>::GetBestPair(openData1& df, openData1& db)
 
 			else if (f_s1_s2 == minF)
 			{
-				if (s1.first.gcost < fbest.gcost)
+				if (s1.first.gcost + s2.first.gcost < fbest.gcost + bbest.gcost)
+				{
 					fbest = s1.first;
-				else if (s1.first.gcost == fbest.gcost && s1.first.bucket < fbest.bucket)
-					fbest = s1.first;
+					bbest = s2.first;
+				}
+				else if (s1.first.gcost + s2.first.gcost == fbest.gcost + bbest.gcost)
+				{
+					if (s1.first.gcost < fbest.gcost)
+						fbest = s1.first;
+					else if (s1.first.gcost == fbest.gcost && s1.first.bucket < fbest.bucket)
+						fbest = s1.first;
 
-				if (s2.first.gcost < bbest.gcost)
-					bbest = s2.first;
-				else if (s2.first.gcost == bbest.gcost && s2.first.bucket < bbest.bucket)
-					bbest = s2.first;
+					if (s2.first.gcost < bbest.gcost)
+						bbest = s2.first;
+					else if (s2.first.gcost == bbest.gcost && s2.first.bucket < bbest.bucket)
+						bbest = s2.first;
+				}
 			}
 		}
 	}
