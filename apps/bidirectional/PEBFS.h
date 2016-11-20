@@ -209,6 +209,7 @@ protected:
 	state s;
 	state g;
 
+	int currentF;
 
 	//optimal solution
 	int cstar;
@@ -410,6 +411,7 @@ int PEBFS<state, action, heuristic>::GetBestPair(openData1& df, openData1& db)
 	df = fbest;
 	db = bbest;
 
+	currentF = minF;
 	return minF;
 }
 
@@ -732,14 +734,14 @@ void PEBFS<state, action, heuristic>::ParallelExpandBucket(openData1 d, const st
 	if (d.dir == kForward1)
 	{
 		gDistForward[d.gcost] += localExpanded;
-		if (d.gcost + d.hcostF<cstar)
+		if (currentF<cstar)
 			gltcDistForward[d.gcost] += localExpanded;
 
 	}
 	else
 	{
 		gDistBackward[d.gcost] += localExpanded;
-		if (d.gcost + d.hcostB<cstar)
+		if (currentF<cstar)
 			gltcDistBackward[d.gcost] += localExpanded;
 	}
 	countLock.unlock();
