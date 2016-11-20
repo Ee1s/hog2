@@ -256,6 +256,7 @@ int main(int argc, char* argv[])
 			std::cout << "Goal: " << goal << std::endl;
 			if (flag == 0)
 				cstar = GetCStar(i);
+			std::cout << "C*: " << cstar << std::endl;
 			searcher = new PEBFSMNPuzzle<MNPuzzle>(start, goal, argv[4], argv[4], forward, reverse, &puzzle,cstar);
 			searcher->FindAPath();
 			delete searcher;

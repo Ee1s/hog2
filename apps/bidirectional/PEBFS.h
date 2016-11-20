@@ -617,7 +617,7 @@ void PEBFS<state, action, heuristic>::ReadBucket(std::unordered_set<uint64_t> &s
 template<class state,class action, typename heuristic>
 void PEBFS<state, action, heuristic>::RemoveDuplicates(std::unordered_set<uint64_t> &states, openData1 d)
 {
-	for (int depth = d.gcost - 2; depth < d.gcost; depth++)
+	for (int depth = 0; depth < d.gcost; depth++)
 	{
 		closedData1 c;
 		c.bucket = d.bucket;
@@ -756,23 +756,23 @@ void PEBFS<state, action, heuristic>::ExpandNextFile(openData1& d)
 	timer.StartTimer();
 
 	//std::cout << "\ncurrent best d: " << d << "\n";
-	for (int depth = 0; depth < d.gcost - 2; depth++)
-	{
-		closedData1 c;
-		c.bucket = d.bucket;
-		c.depth = depth;
-		c.dir = d.dir;
+	//for (int depth = 0; depth < d.gcost - 2; depth++)
+	//{
+	//	closedData1 c;
+	//	c.bucket = d.bucket;
+	//	c.depth = depth;
+	//	c.dir = d.dir;
 
-		auto cdi = closed.find(c);
-		while (cdi != closed.end())
-		{
-			//std::cout << "permanat close: " << cdi->first << "\n";
-			fclose(cdi->second.f);
-			cdi->second.f = 0;
-			closed.erase(cdi);
-			cdi = closed.find(c);
-		}
-	}
+	//	auto cdi = closed.find(c);
+	//	while (cdi != closed.end())
+	//	{
+	//		//std::cout << "permanat close: " << cdi->first << "\n";
+	//		fclose(cdi->second.f);
+	//		cdi->second.f = 0;
+	//		closed.erase(cdi);
+	//		cdi = closed.find(c);
+	//	}
+	//}
 
 
 	std::unordered_set<uint64_t> states;
