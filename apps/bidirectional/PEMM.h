@@ -645,7 +645,7 @@ void PEMM<state, action, heuristic>::ReadBucket(std::unordered_set<uint64_t> &st
 template<class state, class action, typename heuristic>
 void PEMM<state, action, heuristic>::RemoveDuplicates(std::unordered_set<uint64_t> &states, openData d)
 {
-	for (int depth = d.gcost - 2; depth < d.gcost; depth++)
+	for (int depth = 0; depth < d.gcost; depth++)
 	{
 		closedData c;
 		c.bucket = d.bucket;
@@ -826,23 +826,23 @@ void PEMM<state, action, heuristic>::ExpandNextFile()
 	timer.StartTimer();
 
 	//std::cout << "\ncurrent best d: " << d << "\n";
-	for (int depth = 0; depth < d.gcost - 2; depth++)
-	{
-		closedData c;
-		c.bucket = d.bucket;
-		c.depth = depth;
-		c.dir = d.dir;
+	//for (int depth = 0; depth < d.gcost - 2; depth++)
+	//{
+	//	closedData c;
+	//	c.bucket = d.bucket;
+	//	c.depth = depth;
+	//	c.dir = d.dir;
 
-		auto cdi = closed.find(c);
-		while (cdi != closed.end())
-		{
-			//std::cout << "permanat close: " << cdi->first << "\n";
-			fclose(cdi->second.f);
-			cdi->second.f = 0;
-			closed.erase(cdi);
-			cdi = closed.find(c);
-		}
-	}
+	//	auto cdi = closed.find(c);
+	//	while (cdi != closed.end())
+	//	{
+	//		//std::cout << "permanat close: " << cdi->first << "\n";
+	//		fclose(cdi->second.f);
+	//		cdi->second.f = 0;
+	//		closed.erase(cdi);
+	//		cdi = closed.find(c);
+	//	}
+	//}
 
 
 	std::unordered_set<uint64_t> states;
