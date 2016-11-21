@@ -11,8 +11,8 @@ template<typename heuristic>
 class PEBFSMNPuzzle : public PEBFS<MNPuzzleState, slideDir, heuristic> {
 public:
 	PEBFSMNPuzzle(MNPuzzleState &start, MNPuzzleState &goal, const char *p1, const char *p2, heuristic& f, heuristic& b, MNPuzzle* se,
-		 int cstar = NOT_FOUND)
-		: PEBFS<MNPuzzleState, slideDir, heuristic>(start, goal, p1, p2, f, b, se, cstar)
+		 int cstar = NOT_FOUND, int use_consistency = 0)
+		: PEBFS<MNPuzzleState, slideDir, heuristic>(start, goal, p1, p2, f, b, se, cstar, use_consistency)
 	{
 	}
 

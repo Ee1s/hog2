@@ -137,7 +137,7 @@ class PEBFS
 public:
 	//PEBFS(state &start, state &goal, const char *p1, const char *p2, build_heuristic_function bh_func);
 	PEBFS(state &start, state &goal, const char *p1, const char *p2, heuristic& f, heuristic& b,
-		SearchEnvironment<state, action>* se, int _cstar = NOT_FOUND);
+		SearchEnvironment<state, action>* se, int _cstar = NOT_FOUND, int _use_consistency = 0);
 
 	void FindAPath();
 
@@ -214,6 +214,7 @@ protected:
 	//optimal solution
 	int cstar;
 
+	int use_consistency;
 
 };
 
@@ -233,8 +234,9 @@ protected:
 
 template<class state,class action, typename heuristic>
 PEBFS<state, action, heuristic>::PEBFS(state &start, state &goal, const char *p1, const char *p2, heuristic& f, heuristic& b,
-	SearchEnvironment<state, action>* se, int _cstar)
-	:prefix1(p1), prefix2(p2), bestSolution(NOT_FOUND), expanded(0), expandedOnFirstSolution(0), moreThanCube(se),cstar(_cstar)
+	SearchEnvironment<state, action>* se, int _cstar, int _use_consistency)
+	:prefix1(p1), prefix2(p2), bestSolution(NOT_FOUND), expanded(0), expandedOnFirstSolution(0),
+	moreThanCube(se),cstar(_cstar),use_consistency(_use_consistency)
 
 {
 
@@ -350,7 +352,11 @@ int PEBFS<state, action, heuristic>::GetBestPair(openData1& df, openData1& db)
 			break;
 		}
 	}
-	minF = std::max(fbest.gcost + fbest.hcostF, bbest.gcost + bbest.hcostB);
+	if(use_consistency==0)
+		minF = std::max(fbest.gcost + fbest.hcostF, bbest.gcost + bbest.hcostB);
+	else
+		minF = std::max(fbest.gcost + bbest.gcost + fbest.hcostF- bbest.hcostF,
+			bbest.gcost + fbest.gcost + bbest.hcostB - fbest.hcostB);
 	minF = std::max(minF, fbest.gcost + bbest.gcost);
 
 	int f_s1_s2;
@@ -497,11 +503,16 @@ bool PEBFS<state, action, heuristic>::CanTerminateSearch(std::unordered_map<open
 			if (s2.first.gcost + s2.first.hcostB >= bestSolution)
 				continue;
 			//find a pair s, s2
-			if (s.first.gcost + s2.first.gcost < bestSolution
-				//&&s.first.gcost + s2.first.gcost+s.first.hcostF - s2.first.hcostF< bestSolution
-				//&&s.first.gcost + s2.first.gcost + s2.first.hcostB - s.first.hcostB< bestSolution
-				)
-				return false;
+			if (s.first.gcost + s2.first.gcost < bestSolution)
+			{
+				if (use_consistency == 0)
+					return false;
+				if(use_consistency == 1
+					&&s.first.gcost + s2.first.gcost + s.first.hcostF - s2.first.hcostF< bestSolution
+					&&s.first.gcost + s2.first.gcost + s2.first.hcostB - s.first.hcostB< bestSolution)
+					return false;
+				
+			}
 		}
 
 	}
@@ -821,7 +832,7 @@ void PEBFS<state, action, heuristic>::ExpandNextPair()
 	openData1 d1, d2;
 	int f = GetBestPair(d1, d2);
 	
-	//printf("current f: %d\n", f);
+	//printf("current f(u,v): %d\n", f);
 
 	if (CanTerminateSearch(open))
 		return;

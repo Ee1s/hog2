@@ -239,6 +239,10 @@ int main(int argc, char* argv[])
 		if (argc > 5)
 			flag = atoi(argv[5]);
 
+		int use_consistency = 0;
+		if (argc > 6)
+			use_consistency = atoi(argv[6]);
+
 		MNPuzzle forward(sz, sz);
 		MNPuzzle reverse(sz, sz);
 		forward.Set_Use_Manhattan_Heuristic(true);
@@ -257,7 +261,7 @@ int main(int argc, char* argv[])
 			if (flag == 0)
 				cstar = GetCStar(i);
 			std::cout << "C*: " << cstar << std::endl;
-			searcher = new PEBFSMNPuzzle<MNPuzzle>(start, goal, argv[4], argv[4], forward, reverse, &puzzle,cstar);
+			searcher = new PEBFSMNPuzzle<MNPuzzle>(start, goal, argv[4], argv[4], forward, reverse, &puzzle,cstar,use_consistency);
 			searcher->FindAPath();
 			delete searcher;
 		}
