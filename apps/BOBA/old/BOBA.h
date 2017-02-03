@@ -15,7 +15,7 @@
 
 #include "BDOpenClosed.h"
 #include "FPUtil.h"
-#include <unordered_map>
+
 
 #define EPSILON 1
 
@@ -45,7 +45,8 @@ struct BOBACompareOpenWaiting {
 
 		if (fequal(f1, f2))
 		{
-		    return (!fless(i1.g, i2.g)); // high g-cost over low
+		    return (!fgreater(i1.g, i2.g)); // high g-cost over low
+			//return (!fgreater(i2.g, i1.g)); // low g-cost over low
 		}
 		return (fgreater(f1, f2)); // low f over high
 	}
@@ -67,11 +68,11 @@ public:
 	bool DoSingleSearchStep(std::vector<state> &thePath);
 	
 
-	
+	void SetTrueSolutionCost(double c) { trueCost = c; }
 	
 	virtual const char *GetName() { return "BOBA"; }
 	
-	void ResetNodeCount() { nodesExpanded = nodesTouched = 0; counts.clear(); }
+	void ResetNodeCount() { nodesExpanded = nodesTouched = nodesExpandedOfTies = 0; }
 	
 //	bool GetClosedListGCost(const state &val, double &gCost) const;
 //	unsigned int GetNumOpenItems() { return openClosedList.OpenSize(); }
@@ -114,17 +115,27 @@ public:
 			return backwardQueue.Lookat(childID).g;
 		return -1;
 	}
-	uint64_t GetNodesExpanded() const { return nodesExpanded; }
-	uint64_t GetNodesTouched() const { return nodesTouched; }
-	uint64_t GetNecessaryExpansions() const {
-		uint64_t necessary = 0;
-		for (const auto &i : counts)
-		{
-			if (i.first < currentCost)
-				necessary+=i.second;
-		}
-		return necessary;
+	double GetNodeForwardH(const state& s)
+	{
+
+		uint64_t childID;
+		auto l = forwardQueue.Lookup(env->GetStateHash(s), childID);
+		if (l != kUnseen)
+			return forwardQueue.Lookat(childID).h;
+		return -1;
 	}
+	double GetNodeBackwardH(const state& s)
+	{
+
+		uint64_t childID;
+		auto l = backwardQueue.Lookup(env->GetStateHash(s), childID);
+		if (l != kUnseen)
+			return backwardQueue.Lookat(childID).h;
+		return -1;
+	}
+	uint64_t GetNodesExpanded() const { return nodesExpanded; }
+	uint64_t GetNodesExpandedOfTies() const { return nodesExpandedOfTies; }
+	uint64_t GetNodesTouched() const { return nodesTouched; }
 	double GetSolutionCost() const { return currentCost; }
 	//void FullBPMX(uint64_t nodeID, int distance);
 	
@@ -161,13 +172,13 @@ private:
 				Heuristic<state> *heuristic, const state &target);
 	//direction ==0 forward; 1 backward
 	//void Expand(int direction);
-	uint64_t nodesTouched, nodesExpanded;
+	uint64_t nodesTouched, nodesExpanded, nodesExpandedOfTies;
 	state middleNode;
 	double currentCost;
 	double currentSolutionEstimate;
 	std::vector<state> neighbors;
 	environment *env;
-	std::unordered_map<double, int> counts;
+	
 
 	priorityQueue forwardQueue, backwardQueue;
 	//priorityQueue2 forwardQueue, backwardQueue;
@@ -181,7 +192,7 @@ private:
 	bool expand;
 
 	double currentPr;
-
+	double trueCost;
 
 };
 
@@ -206,6 +217,7 @@ bool BOBA<state, action, environment, priorityQueue>::InitializeSearch(environme
 	backwardHeuristic = backward;
 	currentSolutionEstimate = 0;
 	currentCost = DBL_MAX;
+	trueCost = DBL_MAX;
 	forwardQueue.Reset();
 	backwardQueue.Reset();
 	ResetNodeCount();
@@ -216,7 +228,7 @@ bool BOBA<state, action, environment, priorityQueue>::InitializeSearch(environme
 		return false;
 
 	forwardQueue.AddOpenNode(start, env->GetStateHash(start), 0, forwardHeuristic->HCost(start, goal));
-	backwardQueue.AddOpenNode(goal, env->GetStateHash(goal), 0, backwardHeuristic->HCost(goal, start));
+	backwardQueue.AddOpenNode(goal, env->GetStateHash(goal), 0, forwardHeuristic->HCost(goal, start));
 
 	return true;
 }
@@ -344,10 +356,14 @@ bool BOBA<state, action, environment, priorityQueue>::ExpandAPair(std::vector<st
 		iFReady = forwardQueue.Lookat(forwardQueue.Peek(kOpenReady));
 		iBReady = backwardQueue.Lookat(backwardQueue.Peek(kOpenReady));
 	}
-	
+	//assert(forwardQueue.ValidateOpenReady());
+	//assert(forwardQueue.ValidateOpenWaiting());
+	//assert(backwardQueue.ValidateOpenReady());
+	//assert(backwardQueue.ValidateOpenWaiting());
 
 	if (iFReady.data == iBReady.data) // terminate - fronts equal
 	{
+		std::cout << "terminate - fronts equal\n";
 		if (currentCost != DBL_MAX)
 		{
 			std::vector<state> pFor, pBack;
@@ -361,6 +377,7 @@ bool BOBA<state, action, environment, priorityQueue>::ExpandAPair(std::vector<st
 	}
 	double minPr = std::max(iFReady.g + iFReady.h, iBReady.g + iBReady.h);
 	minPr = std::max(minPr, iFReady.g + iBReady.g + EPSILON);
+
 	if (!fless(minPr, currentCost)) // terminate - priority >= incumbant solution
 	{
 		if (currentCost != DBL_MAX)
@@ -374,8 +391,9 @@ bool BOBA<state, action, environment, priorityQueue>::ExpandAPair(std::vector<st
 		}
 		return true;
 	}
-	counts[minPr]+=2; // 2 expansions
-	//printf("Expanding F_f = %f; F_b = %f; g+g+epsilon=%f\n", iFReady.g+iFReady.h, iBReady.g + iBReady.h, iFReady.g + iBReady.g + EPSILON);
+
+	if(fequal(minPr,trueCost))
+		nodesExpandedOfTies += 2;
 	Expand(forwardQueue, backwardQueue, forwardHeuristic, goal);
 	Expand(backwardQueue, forwardQueue, backwardHeuristic, start);
 	return false;
@@ -389,7 +407,7 @@ bool BOBA<state, action, environment, priorityQueue>::ExpandAPair(std::vector<st
 template <class state, class action, class environment, class priorityQueue>
 bool BOBA<state, action, environment, priorityQueue>::DoSingleSearchStep(std::vector<state> &thePath)
 {
-	return ExpandAPair(thePath);
+	ExpandAPair();
 }
 
 
@@ -466,11 +484,10 @@ void BOBA<state, action, environment, priorityQueue>::Expand(priorityQueue &curr
 				else//loc == kUnseen
 				{
 					double edgeCost = env->GCost(current.Lookup(nextID).data, succ);
-
 					double newNodeF = current.Lookup(nextID).g + edgeCost + heuristic->HCost(succ, target);
 					if (fless(newNodeF , currentCost))
 					{
-						if (fless(newNodeF, currentSolutionEstimate))
+						if (fless(newNodeF , currentSolutionEstimate))
 							current.AddOpenNode(succ,
 												env->GetStateHash(succ),
 												current.Lookup(nextID).g + edgeCost,

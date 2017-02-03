@@ -257,13 +257,12 @@ void GRIDMAPTEST::run(std::string fileName, double weight, int teststart, int te
 
 		startTime = clock();
 		bobacompare.InitializeSearch(me, start, goal, wh, wh, path);
-		bobacompare.SetTrueSolutionCost(expectedCost[i]);
 		bobacompare.GetPath(me, start, goal, wh, wh, path);
 		endTime = clock();
 		clockTicksTaken = endTime - startTime;
 		bobaTime = clockTicksTaken / (double)CLOCKS_PER_SEC;
 
-		if (bobacompare.GetSolutionCost() - expectedCost[i] > 0.01 || bobacompare.GetSolutionCost() - expectedCost[i] < -0.01)
+		if (!fequal(bobacompare.GetSolutionCost(),expectedCost[i]))
 		{
 			std::cout << "error solution cost:\t expected cost\n";
 			std::cout << bobacompare.GetSolutionCost() << "\t" << expectedCost[i] << "\n";
@@ -276,11 +275,9 @@ void GRIDMAPTEST::run(std::string fileName, double weight, int teststart, int te
 				std::cout << x << " is on " << t << " and " << u << "\n";
 				std::cout << "True g: " << d;
 				if (t != kUnseen)
-					std::cout << " forward g: " << bobacompare.GetNodeForwardG(x)
-					<< " h: " << bobacompare.GetNodeForwardH(x);
+					std::cout << " forward g: " << bobacompare.GetNodeForwardG(x);
 				if (u != kUnseen)
-					std::cout << " backward g: " << bobacompare.GetNodeBackwardG(x)
-					<< " h: " << bobacompare.GetNodeBackwardH(x);
+					std::cout << " backward g: " << bobacompare.GetNodeBackwardG(x);
 				std::cout << "\n";
 			}
 
@@ -288,7 +285,7 @@ void GRIDMAPTEST::run(std::string fileName, double weight, int teststart, int te
 		}
 
 		cout << "nodes:(A*,MM,BOBA,BOBAties) \t" << astar.GetNodesExpanded() << "\t"
-			<< mm.GetNodesExpanded() << "\t" << bobacompare.GetNodesExpanded() << "\t" << bobacompare.GetNodesExpandedOfTies() << "\n";
+			<< mm.GetNodesExpanded() << "\t" << bobacompare.GetNodesExpanded() << "\t" << bobacompare.GetNecessaryExpansions()<< "\n";
 		cout << "time:(A*,MM,BOBA) \t" << astarTime << "\t"
 			<< mmTime << "\t" << bobaTime << "\t" << "\n";
 	}
