@@ -297,8 +297,9 @@ void TOHTEST::TestTOH(Heuristic<TOHState<N>> *f, int mode, int first, int last)
 	//const int M = 2;
 
 	TemplateAStar<TOHState<N>, TOHMove, TOH<N>> astar;
-
 	BOBA<TOHState<N>, TOHMove, TOH<N>> boba;
+	MM<TOHState<N>, TOHMove, TOH<N>> mm;
+
 	TOH<N> ts;
 	TOHState<N> s;
 	TOHState<N> g;
@@ -353,8 +354,6 @@ void TOHTEST::TestTOH(Heuristic<TOHState<N>> *f, int mode, int first, int last)
 			back.heuristics.resize(0);
 			back.heuristics.push_back(&pdb2);
 
-			ZeroHeuristic<TOHState<N>> zero;
-
 			printf("-=-=-BOBA-=-=-\n");
 			timer.StartTimer();
 
@@ -372,10 +371,10 @@ void TOHTEST::TestTOH(Heuristic<TOHState<N>> *f, int mode, int first, int last)
 		else if (mode == 2)
 		{	
 			ZeroHeuristic<TOHState<N>> zero;
-			printf("-=-=-BOBA-=-=-\n");
+			printf("-=-=-BOBA no heur-=-=-\n");
 			timer.StartTimer();
-			boba.InitializeSearch(&ts, s, g, f, &zero, thePath);
-			boba.GetPath(&ts, s, g, f, &zero, thePath);
+			boba.InitializeSearch(&ts, s, g, &zero, &zero, thePath);
+			boba.GetPath(&ts, s, g, &zero, &zero, thePath);
 
 			timer.EndTimer();
 			printf("%llu nodes expanded\n", boba.GetNodesExpanded());
@@ -383,6 +382,50 @@ void TOHTEST::TestTOH(Heuristic<TOHState<N>> *f, int mode, int first, int last)
 			printf("%1.2f elapsed\n", timer.GetElapsedTime());
 		}
 
+		else if (mode == 3)
+		{
+			TOH<N - M> absToh2;
+			TOHState<N - M> absTohState2;
+			TOHPDB<N - M, N> pdb2(&absToh2);
+
+			pdb2.SetGoal(s);
+			pdb2.BuildPDB(s, std::thread::hardware_concurrency());
+
+			Heuristic<TOHState<N>> back;
+
+			back.lookups.resize(0);
+			back.lookups.push_back({ kAddNode, 1, 2 });
+			back.lookups.push_back({ kLeafNode, 0, 0 });
+
+			back.heuristics.resize(0);
+			back.heuristics.push_back(&pdb2);
+
+			printf("-=-=-MM-=-=-\n");
+			timer.StartTimer();
+
+			mm.InitializeSearch(&ts, s, g, f, &back, thePath);
+			mm.GetPath(&ts, s, g, f, &back, thePath);
+
+			timer.EndTimer();
+			printf("%llu nodes expanded\n", mm.GetNodesExpanded());
+			printf("Solution path length %1.0f\n", ts.GetPathLength(thePath));
+			printf("%1.2f elapsed\n", timer.GetElapsedTime());
+
+		}
+
+		else if (mode == 4)
+		{
+			ZeroHeuristic<TOHState<N>> zero;
+			printf("-=-=-MM0-=-=-\n");
+			timer.StartTimer();
+			mm.InitializeSearch(&ts, s, g, &zero, &zero, thePath);
+			mm.GetPath(&ts, s, g, &zero, &zero, thePath);
+
+			timer.EndTimer();
+			printf("%llu nodes expanded\n", mm.GetNodesExpanded());
+			printf("Solution path length %1.0f\n", ts.GetPathLength(thePath));
+			printf("%1.2f elapsed\n", timer.GetElapsedTime());
+		}
 	}
 }
 
