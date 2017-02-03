@@ -47,6 +47,10 @@ PROJECTS = \
   apps/roads \
   apps/canonicalGrids \
   apps/delta \
+  apps/bds \
+  apps/NERO \
+  apps/BOBA \
+  apps/BDcompareUni \
   demos/DFID \
   demos/dijkstra \
   demos/astar \
@@ -101,6 +105,10 @@ PROJECTS_ALL = \
   apps/delta \
   apps/pancake \
   apps/multiagent \
+  apps/bds \
+  apps/NERO \
+   apps/BOBA \
+  apps/BDcompareUni \
   demos/DFID \
   demos/dijkstra \
   demos/astar \

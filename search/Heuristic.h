@@ -27,10 +27,12 @@ struct HeuristicTreeNode
 template <class state>
 class Heuristic {
 public:
+	Heuristic() { for (int x = 0; x < 256; x++) histogram[x] = 0; }
 	virtual ~Heuristic() {}
 	virtual double HCost(const state &a, const state &b) const;
 	std::vector<HeuristicTreeNode> lookups;
 	std::vector<Heuristic*> heuristics;
+	mutable uint64_t histogram[256];
 private:
 	double HCost(const state &s1, const state &s2, int treeNode) const;
 };
@@ -40,6 +42,17 @@ class ZeroHeuristic : public Heuristic<state> {
 public:
 	double HCost(const state &a, const state &b) const { return 0; }
 };
+
+template <class state>
+class WeightedHeuristic : public Heuristic<state> {
+public:
+	WeightedHeuristic(Heuristic<state> *h, double weight) :h(h), weight(weight){}
+	double HCost(const state &a, const state &b) const { return weight*h->HCost(a, b); }
+private:
+	Heuristic<state> *h;
+	double weight;
+};
+
 
 template <class state>
 double Heuristic<state>::HCost(const state &s1, const state &s2) const
@@ -72,6 +85,7 @@ double Heuristic<state>::HCost(const state &s1, const state &s2, int treeNode) c
 			hval = heuristics[lookups[treeNode].whichNode]->HCost(s1, s2);
 		} break;
 	}
+//	histogram[int(hval)]++;
 	return hval;
 }
 

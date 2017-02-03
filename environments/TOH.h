@@ -11,6 +11,7 @@
 
 #include <stdio.h>
 #include <cstdint>
+#include <math.h>
 #include "SearchEnvironment.h"
 #include "PDBHeuristic.h"
 
@@ -394,7 +395,7 @@ template <int patternDisks, int totalDisks>
 class TOHPDB : public PDBHeuristic<TOHState<patternDisks>, TOHMove, TOH<patternDisks>, TOHState<totalDisks>> {
 public:
 	TOHPDB(TOH<patternDisks> *e)
-	:PDBHeuristic<TOHState<patternDisks>, TOHMove, TOH<patternDisks>, TOHState<totalDisks>>(e) {}
+	:PDBHeuristic<TOHState<patternDisks>, TOHMove, TOH<patternDisks>, TOHState<totalDisks>>(e) { TOHState<totalDisks> g; this->SetGoal(g); }
 	virtual ~TOHPDB() {}
 
 	TOHState<totalDisks> GetStateFromAbstractState(TOHState<patternDisks> &start) const
